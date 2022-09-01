@@ -2,6 +2,7 @@
 #include "Vertex.h"
 #include "Input.h"
 #include "Helpers.h"
+#include "Mesh.h"
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
