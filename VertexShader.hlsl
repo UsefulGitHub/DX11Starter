@@ -1,3 +1,8 @@
+cbuffer ExternalData : register(b0)
+{
+	float4 colorTint;
+	float3 offset;
+}
 
 // Struct representing a single vertex worth of data
 // - This should match the vertex definition in our C++ code
