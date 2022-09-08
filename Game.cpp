@@ -338,14 +338,22 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
+	// Initializing the constant buffer for the vertex shader
 	VertexShaderExternalData vsData;
-	vsData.colorTint	= XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
-	vsData.offset		= XMFLOAT3(0.25f, 0.0f, 0.0f);
+	vsData.colorTint	= XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
+	vsData.offset		= XMFLOAT3(0.5f, 0.0f, 0.0f);
 
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	context->Unmap(vsConstantBuffer.Get(), 0);
+
+	// Binding the constant buffer
+	context->VSSetConstantBuffers(
+		0,
+		1,
+		vsConstantBuffer.GetAddressOf()
+	);
 
 	// Drawing the meshes!
 	triangle->Draw();
