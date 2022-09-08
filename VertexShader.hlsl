@@ -1,5 +1,12 @@
-cbuffer ExternalData : register(b0)
+cbuffer ExternalData : register(b0) // b0 means the first buffer register
 {
+	// Describing the layout of this buffer
+	// - Variable names don't mean much going from CPU to GPU memory,
+	// - The GPU just takes in what is bound to the context when we call Draw()
+	// - So the thing we need to define is the data types of whatever we will put in register 0
+	// - (we have to know first, and it has to be reliable)
+	// - The shader will take the first 4 bytes and make a float4, and the next 3 and make a float3
+	// - If nothing has been put in b0, it will take all the zeroes in the register and use them
 	float4 colorTint;
 	float3 offset;
 }

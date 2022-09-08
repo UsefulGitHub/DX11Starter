@@ -5,6 +5,8 @@
 #include "Mesh.h"
 #include "BufferStructs.h"
 
+// Did you know you can press ctrl twice in VS2022 to reveal inline hints? They are pretty useful.
+
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
 #include <d3dcompiler.h>
@@ -87,9 +89,12 @@ void Game::Init()
 		// Get size as the next multiple of 16 (instead of hardcoding a size here!)
 		unsigned int size = sizeof(VertexShaderExternalData);
 		size = (size + 15) / 16 * 16; // This will work even if your struct size changes
+		// Basically first it gets the amount of 16s needed to be greater than or equal to the actual size -
+		// For 0 to 15 it will be 1, for 16 to 31 it will be 2, 32 to 47 it will be 3 etc.
+		// Then it multiplies that "number of 16s that are needed" number by 16 so it is a multiple of 16
 
 		// Describe the constant buffer
-		D3D11_BUFFER_DESC cbDesc	= {}; // Sets struct to all zeroes, clean slate
+		D3D11_BUFFER_DESC cbDesc	= {}; // Sets struct to all zeroes, clean slate (if we don't do this, it could be full of random numbers!)
 		cbDesc.BindFlags			= D3D11_BIND_CONSTANT_BUFFER;
 		cbDesc.ByteWidth			= size; // Must be a multiple of 16
 		// NOTE: This buffer will be read by the gpu and written to by the cpu, probably fairly often (at least once per frame)
@@ -344,6 +349,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	vsData.offset		= XMFLOAT3(0.5f, 0.0f, 0.0f);
 
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+	// Map shows you where the ID3D11 resource is, at least for the moment (things move on/in VRAM)
+	// - While a resource is mapped, if anything in the pipeline needs to access the resource, the pipeline stops and waits (bad)
+	// - Context->Map fills up mappedBuffer with a memory address
+	// - mappedBuffer.pData is a pointer to the position on VRAM of the buffer we asked context to map
+	// - So we don't really send anything to mappedBuffer, we copy from vsData to vsConstantBuffer through our mediator
+	// - The fastest way to send data around in C++ is memcpy
 	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	context->Unmap(vsConstantBuffer.Get(), 0);
