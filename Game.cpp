@@ -4,6 +4,7 @@
 #include "Helpers.h"
 #include "Mesh.h"
 #include "BufferStructs.h"
+#include "Transform.h"
 
 // Did you know you can press ctrl twice in VS2022 to reveal inline hints? They are pretty useful.
 
@@ -324,6 +325,8 @@ void Game::Update(float deltaTime, float totalTime)
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
+
+	trf.MoveAbsolute(deltaTime, 0, 0);
 }
 
 // --------------------------------------------------------
@@ -346,7 +349,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Initializing the constant buffer for the vertex shader
 	VertexShaderExternalData vsData;
 	vsData.colorTint	= XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
-	vsData.offset		= XMFLOAT3(0.5f, 0.0f, 0.0f);
+	vsData.offset = trf.GetPosition();
 
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 	// Map shows you where the ID3D11 resource is, at least for the moment (things move on/in VRAM)

@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include "Mesh.h"
+#include "Transform.h"
 
 class Game 
 	: public DXCore
@@ -50,5 +51,7 @@ private:
 	std::shared_ptr<Mesh> triangle;
 	std::shared_ptr<Mesh> square;
 	std::shared_ptr<Mesh> nonagon;
+
+	Transform trf;
 };
 
