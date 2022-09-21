@@ -37,6 +37,7 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
+	//trf = new Transform();
 }
 
 // --------------------------------------------------------
@@ -302,6 +303,13 @@ void Game::CreateGeometry()
 		unsigned int nonagonIndices[] = {9,1,0,9,2,1,9,3,2,9,4,3,9,5,4,9,6,5,9,7,6,9,8,7,9,0,8};
 
 		nonagon = std::make_shared<Mesh>(nonagonVertices, 10, nonagonIndices, 27, device, context);
+
+		// Set up the renderable game objects!
+		ent1 = std::make_shared<Renderable>(triangle);
+		ent2 = std::make_shared<Renderable>(nonagon);
+		ent3 = std::make_shared<Renderable>(nonagon);
+		ent4 = std::make_shared<Renderable>(nonagon);
+		ent5 = std::make_shared<Renderable>(square);
 	}
 }
 
@@ -324,9 +332,30 @@ void Game::Update(float deltaTime, float totalTime)
 {
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
+	{
+		//delete(trf);
+		//trf = nullptr;
 		Quit();
+	}
 
-	trf.MoveAbsolute(deltaTime, 0, 0);
+	Transform* trf1 = ent1->GetTransform();
+	trf1->SetScale(0.2f, 0.2f, 0.2f);
+	trf1->SetPosition(0.0f, sin(totalTime) * deltaTime, 0.0f);
+
+	Transform* trf2 = ent2->GetTransform();
+	trf2->SetPosition(sin(totalTime) * 10.0f * deltaTime, -0.5f, 0.0f);
+	trf2->SetScale(0.5f, 0.4f, 1.0f);
+
+	Transform* trf3 = ent3->GetTransform();
+	trf3->Rotate(0.1f * deltaTime, 0.1f * deltaTime, 0.1f * deltaTime);
+
+	Transform* trf4 = ent4->GetTransform();
+	trf4->SetScale(sin(totalTime) * 10.0f * deltaTime, sin(totalTime) * 10 * deltaTime, 0.0f);
+	trf4->SetPosition((sin(totalTime) * 10.0f) * deltaTime, -0.2f, 0.1f);
+
+	Transform* trf5 = ent5->GetTransform();
+	trf5->Rotate(0.0f, 0.0f, 0.2f * deltaTime);
+	trf5->SetScale(0.6f, 0.6f, 1.0f);
 }
 
 // --------------------------------------------------------
@@ -346,33 +375,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	// Initializing the constant buffer for the vertex shader
-	VertexShaderExternalData vsData;
-	vsData.colorTint	= XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
-	vsData.offset = trf.GetPosition();
-
-	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
-	// Map shows you where the ID3D11 resource is, at least for the moment (things move on/in VRAM)
-	// - While a resource is mapped, if anything in the pipeline needs to access the resource, the pipeline stops and waits (bad)
-	// - Context->Map fills up mappedBuffer with a memory address
-	// - mappedBuffer.pData is a pointer to the position on VRAM of the buffer we asked context to map
-	// - So we don't really send anything to mappedBuffer, we copy from vsData to vsConstantBuffer through our mediator
-	// - The fastest way to send data around in C++ is memcpy
-	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
-	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
-	context->Unmap(vsConstantBuffer.Get(), 0);
-
-	// Binding the constant buffer
-	context->VSSetConstantBuffers(
-		0,
-		1,
-		vsConstantBuffer.GetAddressOf()
-	);
-
-	// Drawing the meshes!
-	triangle->Draw();
-	square->Draw();
-	nonagon->Draw();
+	ent1->Draw(context, vsConstantBuffer);
+	ent2->Draw(context, vsConstantBuffer);
+	ent3->Draw(context, vsConstantBuffer);
+	ent4->Draw(context, vsConstantBuffer);
+	ent5->Draw(context, vsConstantBuffer);
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME

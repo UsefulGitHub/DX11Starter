@@ -28,6 +28,9 @@ public:
 	// Describes where our model is in 3d space
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 
+	// Get the inverse transpose of the world matrix
+	DirectX::XMFLOAT4X4 GetWorldInverseTransposeMatrix();
+
 private:
 	// Raw Transformation Data
 	DirectX::XMFLOAT3 position;
@@ -35,6 +38,7 @@ private:
 	DirectX::XMFLOAT3 scale;
 
 	DirectX::XMFLOAT4X4 worldMatrix;
+	DirectX::XMFLOAT4X4 worldInverseTranspose;
 
 	bool matrixDirty;
 };

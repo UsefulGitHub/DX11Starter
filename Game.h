@@ -7,6 +7,7 @@
 #include <vector>
 #include "Mesh.h"
 #include "Transform.h"
+#include "Renderable.h"
 
 class Game 
 	: public DXCore
@@ -46,12 +47,16 @@ private:
 	// Other D3D resources for shaders
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
 
-	// Vector of meshes
-	//std::vector <std::shared_ptr<Mesh>> meshVector;
 	std::shared_ptr<Mesh> triangle;
 	std::shared_ptr<Mesh> square;
 	std::shared_ptr<Mesh> nonagon;
 
-	Transform trf;
+	//Transform* trf;
+
+	std::shared_ptr<Renderable> ent1;
+	std::shared_ptr<Renderable> ent2;
+	std::shared_ptr<Renderable> ent3;
+	std::shared_ptr<Renderable> ent4;
+	std::shared_ptr<Renderable> ent5;
 };
 

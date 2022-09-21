@@ -8,26 +8,33 @@ Transform::Transform() :
 	scale(1,1,1)
 {
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
+	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixIdentity());
 	matrixDirty = false;
 }
 
-// Offsetters
+// Offsetters also called Transformers
 
 void Transform::MoveAbsolute(float x, float y, float z)
 {
-	XMVECTOR pos = XMLoadFloat3(&position);
+	XMVECTOR start = XMLoadFloat3(&position);
 	XMVECTOR offset = XMVectorSet(x, y, z, 0);
-	XMStoreFloat3(&position, XMVectorAdd(pos, offset));
+	XMStoreFloat3(&position, XMVectorAdd(start, offset));
 	matrixDirty = true;
 }
 
 void Transform::Rotate(float p, float y, float r)
 {
+	XMVECTOR start = XMLoadFloat3(&pitchYawRoll);
+	XMVECTOR offset = XMVectorSet(p, y, r, 0);
+	XMStoreFloat3(&pitchYawRoll, XMVectorAdd(start, offset));
 	matrixDirty = true;
 }
 
 void Transform::Scale(float x, float y, float z)
 {
+	XMVECTOR start = XMLoadFloat3(&scale);
+	XMVECTOR offset = XMVectorSet(x, y, z, 0);
+	XMStoreFloat3(&scale, XMVectorMultiply(start, offset));
 	matrixDirty = true;
 }
 
@@ -59,19 +66,16 @@ void Transform::SetScale(float x, float y, float z)
 
 DirectX::XMFLOAT3 Transform::GetPosition()
 {
-	matrixDirty = true;
 	return position;
 }
 
 DirectX::XMFLOAT3 Transform::GetPitchYawRoll()
 {
-	matrixDirty = true;
 	return pitchYawRoll;
 }
 
 DirectX::XMFLOAT3 Transform::GetScale()
 {
-	matrixDirty = true;
 	return scale;
 }
 
@@ -79,9 +83,9 @@ DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 {
 	if (matrixDirty)
 	{
-		// This is good
+		// This is good...
 		/* XMMATRIX trans = XMMatrixTranslation(position.x, position.y, position.z); */
-		// This is a little bit faster but won't be required
+		// ...but this is a little bit faster- but it won't be required
 		XMMATRIX trans = XMMatrixTranslationFromVector(XMLoadFloat3(&position));
 
 		// Reminder - the rollpitchyaw in the function name is the Order they do the rotations in- not the order of expected inputs! (It wants pitch, yaw, roll.)
@@ -94,7 +98,18 @@ DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 	
 		// Store as a storage type
 		XMStoreFloat4x4(&worldMatrix, worldMat);
+
+		// Store the inverse transpose
+		XMStoreFloat4x4(&worldInverseTranspose, XMMatrixInverse(0, XMMatrixTranspose(worldMat)));
+
+		// Lower the flag - our work here is done! (for now)
+		matrixDirty = false;
 	}
 
 	return worldMatrix;
+}
+
+DirectX::XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix()
+{
+	return worldInverseTranspose;
 }
