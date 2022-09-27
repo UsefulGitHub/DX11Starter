@@ -21,6 +21,36 @@ Camera::~Camera()
 
 void Camera::Update(float deltaTime)
 {
+    Input& input = Input::GetInstance();
+
+    if (input.KeyDown('W'))
+    {
+        transform.MoveRelative(0, 0, 1 * deltaTime);
+    }
+
+    if (input.KeyDown('S'))
+    {
+        transform.MoveRelative(0, 0, -1 * deltaTime);
+    }
+    
+    if (input.KeyDown('A'))
+    {
+        transform.MoveRelative(-1 * deltaTime, 0, 0);
+    }
+    
+    if (input.KeyDown('D'))
+    {
+        transform.MoveRelative(1 * deltaTime, 0, 0);
+    }
+
+    if (input.KeyDown(VK_SPACE)) {
+        transform.MoveAbsolute(0, 1 * deltaTime, 0);
+    }
+
+    if (input.KeyDown('X')) {
+        transform.MoveAbsolute(0, -1 * deltaTime, 0);
+    }
+
     // Update the view matrix because ewe have probably changed the transform
     UpdateViewMatrix();
 }
