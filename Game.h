@@ -8,6 +8,7 @@
 #include "Mesh.h"
 #include "Transform.h"
 #include "Renderable.h"
+#include "Camera.h"
 
 class Game 
 	: public DXCore
@@ -51,7 +52,7 @@ private:
 	std::shared_ptr<Mesh> square;
 	std::shared_ptr<Mesh> nonagon;
 
-	//Transform* trf;
+	std::shared_ptr<Camera> camera;
 
 	std::shared_ptr<Renderable> ent1;
 	std::shared_ptr<Renderable> ent2;

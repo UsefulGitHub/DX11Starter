@@ -9,6 +9,8 @@ cbuffer ExternalData : register(b0) // b0 means the first buffer register
 	// - If nothing has been put in b0, it will take all the zeroes in the register and use them
 	float4 colorTint;
 	matrix world;
+	matrix view;
+	matrix projection;
 }
 
 // Struct representing a single vertex worth of data
@@ -54,7 +56,7 @@ VertexToPixel main( VertexShaderInput input )
 {
 	// Set up output struct
 	VertexToPixel output;
-
+	
 	// Here we're essentially passing the input position directly through to the next
 	// stage (rasterizer), though it needs to be a 4-component vector now.  
 	// - To be considered within the bounds of the screen, the X and Y components 
@@ -64,7 +66,8 @@ VertexToPixel main( VertexShaderInput input )
 	//   which we're leaving at 1.0 for now (this is more useful when dealing with 
 	//   a perspective projection matrix, which we'll get to in the future).
 	// output.screenPosition = float4(input.localPosition + offset, 1.0f);
-	output.screenPosition = mul(world, float4(input.localPosition, 1.0f));
+	matrix wvp = mul(projection, mul(view, world));
+	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
 
 	// Pass the color through 
 	// - The values will be interpolated per-pixel by the rasterizer

@@ -6,6 +6,7 @@
 #include <memory>
 #include <wrl/client.h>
 #include "BufferStructs.h"
+#include "Camera.h"
 
 class Renderable
 {
@@ -26,7 +27,8 @@ public:
 	// Draw
 	void Draw(
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-		Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer,
+		std::shared_ptr<Camera> camera
 	);
 
 private:

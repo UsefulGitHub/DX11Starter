@@ -10,6 +10,7 @@ Transform::Transform() :
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixIdentity());
 	matrixDirty = false;
+	UpdateVectors();
 }
 
 // Offsetters also called Transformers
@@ -19,6 +20,19 @@ void Transform::MoveAbsolute(float x, float y, float z)
 	XMVECTOR start = XMLoadFloat3(&position);
 	XMVECTOR offset = XMVectorSet(x, y, z, 0);
 	XMStoreFloat3(&position, XMVectorAdd(start, offset));
+	matrixDirty = true;
+}
+
+void Transform::MoveRelative(float x, float y, float z)
+{
+	XMVECTOR movement = XMVectorSet(x, y, z, 0);
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&pitchYawRoll));
+
+	// Rotate the movement by the quaternion
+	XMVECTOR dir = XMVector3Rotate(movement, rotQuat);
+
+	// Add and store, and invalidate the matrices
+	XMStoreFloat3(&position, XMLoadFloat3(&position) + dir);
 	matrixDirty = true;
 }
 
@@ -79,6 +93,24 @@ DirectX::XMFLOAT3 Transform::GetScale()
 	return scale;
 }
 
+DirectX::XMFLOAT3 Transform::GetUp()
+{
+	UpdateVectors();
+	return up;
+}
+
+DirectX::XMFLOAT3 Transform::GetRight()
+{
+	UpdateVectors();
+	return right;
+}
+
+DirectX::XMFLOAT3 Transform::GetForward()
+{
+	UpdateVectors();
+	return forward;
+}
+
 DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 {
 	if (matrixDirty)
@@ -112,4 +144,24 @@ DirectX::XMFLOAT4X4 Transform::GetWorldMatrix()
 DirectX::XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix()
 {
 	return worldInverseTranspose;
+}
+
+void Transform::UpdateVectors()
+{
+	XMVECTOR mathUp = XMVectorSet(0, 1, 0, 0);
+	XMVECTOR mathRight = XMVectorSet(1, 0, 0, 0);
+	XMVECTOR mathForward = XMVectorSet(0, 0, 1, 0);
+
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&pitchYawRoll));
+
+	// Rotate the movement by the quaternion
+	XMVECTOR mathUpRotated = XMVector3Rotate(mathUp, rotQuat);
+	XMVECTOR mathRightRotated = XMVector3Rotate(mathRight, rotQuat);
+	XMVECTOR mathForwardRotated = XMVector3Rotate(mathForward, rotQuat);
+
+	XMStoreFloat3(&up, mathUpRotated);
+	XMStoreFloat3(&right, mathRightRotated);
+	XMStoreFloat3(&forward, mathForwardRotated);
+
+	vectorsDirty = false;
 }

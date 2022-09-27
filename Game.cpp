@@ -61,6 +61,15 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	// Create our camera
+	camera = std::make_shared<Camera>(
+		0.0f,
+		0.0f,
+		-5.0f,
+		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
+		XM_PIDIV4 // Pi divided by 4, 45 degrees
+	);
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -330,6 +339,8 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	camera->Update(deltaTime);
+
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 	{
@@ -375,11 +386,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	ent1->Draw(context, vsConstantBuffer);
-	ent2->Draw(context, vsConstantBuffer);
-	ent3->Draw(context, vsConstantBuffer);
-	ent4->Draw(context, vsConstantBuffer);
-	ent5->Draw(context, vsConstantBuffer);
+	ent1->Draw(context, vsConstantBuffer, camera);
+	ent2->Draw(context, vsConstantBuffer, camera);
+	ent3->Draw(context, vsConstantBuffer, camera);
+	ent4->Draw(context, vsConstantBuffer, camera);
+	ent5->Draw(context, vsConstantBuffer, camera);
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME

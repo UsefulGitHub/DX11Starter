@@ -23,13 +23,16 @@ Transform* Renderable::GetTransform()
 
 void Renderable::Draw(
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer,
+	std::shared_ptr<Camera> camera
 )
 {
 	// Initializing the constant buffer for the vertex shader
 	VertexShaderExternalData vsData;
 	vsData.colorTint = DirectX::XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
 	vsData.world = trf.GetWorldMatrix();
+	vsData.view = camera->GetView();
+	vsData.projection = camera->GetProjection();
 
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 	// Map shows you where the ID3D11 resource is, at least for the moment (things move on/in VRAM)
