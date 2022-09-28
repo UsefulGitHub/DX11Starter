@@ -9,6 +9,8 @@
 #include "Transform.h"
 #include "Renderable.h"
 #include "Camera.h"
+// Not including the ImGui headers here because they are in DXCore.h,
+// which this includes and inherits from <3.
 
 class Game 
 	: public DXCore
@@ -30,6 +32,10 @@ private:
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders(); 
 	void CreateGeometry();
+
+	// ImGui helper methods
+	ImGuiIO PrepImGui(float deltaTime);
+	void UpdateImGui(ImGuiIO frameIO);
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the

@@ -51,6 +51,11 @@ Game::~Game()
 	// created using new or new[] within this class
 	// - Note: this is unnecessary if using smart pointers
 
+	// ImGui clean up (as requested above <3)
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	// Call Release() on any Direct3D objects made within this class
 	// - Note: this is unnecessary for D3D objects stored in ComPtrs
 }
@@ -61,6 +66,17 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	// Initialize ImGui itself and platform/renderer backends
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui_ImplWin32_Init(hWnd);
+	ImGui_ImplDX11_Init(device.Get(), context.Get());
+
+	// Pick a style (uncomment one of these 3)
+	//ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+	ImGui::StyleColorsClassic();
+
 	// Create our camera
 	camera = std::make_shared<Camera>(
 		0.0f,
@@ -324,6 +340,80 @@ void Game::CreateGeometry()
 	}
 }
 
+// --------------------------------------------------------
+// Do this first thing in Update()!
+//  - Feeds fresh input data to ImGui
+//  - Determines whether to capture input
+//  - Resets the gui frame
+//  - Needs deltaTime to function
+// --------------------------------------------------------
+ImGuiIO Game::PrepImGui(float deltaTime)
+{
+	// Get a reference to our custom input manager
+	Input& input = Input::GetInstance();
+	
+	// Reset input manager's gui state so we don’t
+	// taint our own input (you’ll uncomment later)
+	input.SetKeyboardCapture(false);
+	input.SetMouseCapture(false);
+	
+	// Feed fresh input data to ImGui
+	ImGuiIO& io = ImGui::GetIO();
+	io.DeltaTime = deltaTime;
+	io.DisplaySize.x = (float)this->windowWidth;
+	io.DisplaySize.y = (float)this->windowHeight;
+	io.KeyCtrl = input.KeyDown(VK_CONTROL);
+	io.KeyShift = input.KeyDown(VK_SHIFT);
+	io.KeyAlt = input.KeyDown(VK_MENU);
+	io.MousePos.x = (float)input.GetMouseX();
+	io.MousePos.y = (float)input.GetMouseY();
+	io.MouseDown[0] = input.MouseLeftDown();
+	io.MouseDown[1] = input.MouseRightDown();
+	io.MouseDown[2] = input.MouseMiddleDown();
+	io.MouseWheel = input.GetMouseWheel();
+	input.GetKeyArray(io.KeysDown, 256);
+
+	// Reset the frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// Determine new input capture (you’ll uncomment later)
+	input.SetKeyboardCapture(io.WantCaptureKeyboard);
+	input.SetMouseCapture(io.WantCaptureMouse);
+
+	// Show the demo window
+	//ImGui::ShowDemoWindow();
+
+	// Return the io for our Update method to use
+	return io;
+}
+
+// --------------------------------------------------------
+// Handles all our ImGui window definition.
+//  - Takes pointers to values to read/write to them
+// --------------------------------------------------------
+void Game::UpdateImGui(ImGuiIO frameIO)
+{
+	float framerate = frameIO.Framerate;
+
+	ImGui::Begin("Stats"); // Everything after is part of the window
+	ImGui::Text("ms/frame: %.3f - FPS: %.1f", 1000.0f / framerate, framerate);
+	ImGui::Text("display size X: %.0f", frameIO.DisplaySize.x);
+	ImGui::Text("display size Y: %.0f", frameIO.DisplaySize.y);
+
+	ImGui::End(); // Ends the current window
+
+	ImGui::Begin("Camera Editor"); // Everything after is part of the window
+	ImGui::Text("To be improved... I tried interfacing with the transform but ran out of time.");
+
+	if (ImGui::SliderFloat("Field of View", camera->GetFOV(), XM_PIDIV4, XM_PIDIV2))
+	{
+		camera->UpdateProjectionMatrix(*camera->GetAspectRatio());
+	}
+
+	ImGui::End(); // Ends the current window
+}
 
 // --------------------------------------------------------
 // Handle resizing to match the new window size.
@@ -341,6 +431,15 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+	// This next line following must be done at the very top of Update(),
+	// so that the UI has fresh input data and it knows
+	// a new frame has started!
+	ImGuiIO frameIO = PrepImGui(deltaTime);
+
+	// Actually put the gui on screen
+	UpdateImGui(frameIO);
+
+	// Update the camera :)
 	camera->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
@@ -393,6 +492,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	ent3->Draw(context, vsConstantBuffer, camera);
 	ent4->Draw(context, vsConstantBuffer, camera);
 	ent5->Draw(context, vsConstantBuffer, camera);
+
+	// The GUI should be the LAST thing drawn before ending the frame!
+	// Draw ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME

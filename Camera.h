@@ -17,6 +17,9 @@ public:
 
 	DirectX::XMFLOAT4X4 GetView();
 	DirectX::XMFLOAT4X4 GetProjection();
+	Transform GetTransform();
+	float* GetFOV();
+	float* GetAspectRatio();
 
 private:
 	DirectX::XMFLOAT4X4 viewMatrix;
@@ -25,6 +28,7 @@ private:
 	Transform transform;
 
 	float fieldOfView;
+	float aspectRatio;
 
 	float movementSpeed;
 	float mouseLookSpeed;

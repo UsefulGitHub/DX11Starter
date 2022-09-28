@@ -8,6 +8,7 @@ Camera::Camera(float x, float y, float z, float aspectRatio, float fieldOfView, 
     transform.SetPosition(x, y, z);
 
     this->fieldOfView = fieldOfView;
+    this->aspectRatio = aspectRatio;
 
     this->movementSpeed = movementSpeed;
     this->mouseLookSpeed = mouseLookSpeed;
@@ -115,4 +116,19 @@ DirectX::XMFLOAT4X4 Camera::GetView()
 DirectX::XMFLOAT4X4 Camera::GetProjection()
 {
     return projMatrix;
+}
+
+Transform Camera::GetTransform()
+{
+    return transform;
+}
+
+float* Camera::GetFOV()
+{
+    return &fieldOfView;
+}
+
+float* Camera::GetAspectRatio()
+{
+    return &aspectRatio;
 }
