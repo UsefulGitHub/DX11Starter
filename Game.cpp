@@ -67,7 +67,9 @@ void Game::Init()
 		0.0f,
 		-5.0f,
 		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
-		XM_PIDIV4 // Pi divided by 4, 45 degrees
+		XM_PIDIV4, // Pi divided by 4, 45 degrees
+		1.0f,
+		1.0f
 	);
 
 	// Helper methods for loading shaders, creating some basic

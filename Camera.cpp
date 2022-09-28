@@ -2,12 +2,15 @@
 
 using namespace DirectX;
 
-Camera::Camera(float x, float y, float z, float aspectRatio, float fieldOfView)
+Camera::Camera(float x, float y, float z, float aspectRatio, float fieldOfView, float movementSpeed = 1, float mouseLookSpeed = 1)
     : transform()
 {
     transform.SetPosition(x, y, z);
 
     this->fieldOfView = fieldOfView;
+
+    this->movementSpeed = movementSpeed;
+    this->mouseLookSpeed = mouseLookSpeed;
 
     // Z positive goes INTO the screen
     // Z positive goes INTO the screen with Left Hand
@@ -25,30 +28,54 @@ void Camera::Update(float deltaTime)
 
     if (input.KeyDown('W'))
     {
-        transform.MoveRelative(0, 0, 1 * deltaTime);
+        transform.MoveRelative(0, 0, movementSpeed * deltaTime);
     }
 
     if (input.KeyDown('S'))
     {
-        transform.MoveRelative(0, 0, -1 * deltaTime);
+        transform.MoveRelative(0, 0, -1 * movementSpeed * deltaTime);
     }
     
     if (input.KeyDown('A'))
     {
-        transform.MoveRelative(-1 * deltaTime, 0, 0);
+        transform.MoveRelative(-1 * movementSpeed * deltaTime, 0, 0);
     }
     
     if (input.KeyDown('D'))
     {
-        transform.MoveRelative(1 * deltaTime, 0, 0);
+        transform.MoveRelative(movementSpeed * deltaTime, 0, 0);
     }
 
     if (input.KeyDown(VK_SPACE)) {
-        transform.MoveAbsolute(0, 1 * deltaTime, 0);
+        transform.MoveAbsolute(0, movementSpeed * deltaTime, 0);
     }
 
     if (input.KeyDown('X')) {
-        transform.MoveAbsolute(0, -1 * deltaTime, 0);
+        transform.MoveAbsolute(0, movementSpeed * deltaTime, 0);
+    }
+
+    // Mouse input!
+    if (input.MouseLeftDown())
+    {
+        int cursorMoveX = input.GetMouseXDelta();
+        int cursorMoveY = input.GetMouseYDelta();
+
+        // X-axis rotation yaws around the Y-axis
+        transform.Rotate(0, cursorMoveX * mouseLookSpeed * deltaTime, 0);
+
+        // Y-axis rotation pitches around the X-axis
+        transform.Rotate(cursorMoveY * mouseLookSpeed * deltaTime, 0, 0);
+
+        // Get X rotation for clamp
+        DirectX::XMFLOAT3 newRotation = transform.GetPitchYawRoll();
+        if (newRotation.x >= DirectX::XM_PIDIV2)
+        {
+            transform.SetPitchYawRoll(DirectX::XM_PIDIV2, newRotation.y, newRotation.z);
+        }
+        if (newRotation.x <= DirectX::XM_PIDIV2 * -1)
+        {
+            transform.SetPitchYawRoll(DirectX::XM_PIDIV2 * -1, newRotation.y, newRotation.z);
+        }
     }
 
     // Update the view matrix because ewe have probably changed the transform

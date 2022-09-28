@@ -7,7 +7,7 @@
 class Camera
 {
 public:
-	Camera(float x, float y, float z, float aspectRatio, float fieldOfView);
+	Camera(float x, float y, float z, float aspectRatio, float fieldOfView, float movementSpeed, float mouseLookSpeed);
 	~Camera();
 
 	// Update methods
@@ -25,5 +25,8 @@ private:
 	Transform transform;
 
 	float fieldOfView;
+
+	float movementSpeed;
+	float mouseLookSpeed;
 };
 
