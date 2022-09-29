@@ -7,12 +7,13 @@
 #include <wrl/client.h>
 #include "BufferStructs.h"
 #include "Camera.h"
+#include "Material.h"
 
 class Renderable
 {
 public:
 	Renderable();
-	Renderable(std::shared_ptr<Mesh> mesh);
+	Renderable(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> material);
 
 	// There isn't really much for a destructor to do here.
 	// In general, a class shouldn't delete an object it didn't create.
@@ -22,17 +23,18 @@ public:
 
 	// Getters
 	std::shared_ptr<Mesh> GetMesh();
+	std::shared_ptr<Material> GetMaterial();
 	Transform* GetTransform();
 
 	// Draw
 	void Draw(
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-		Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer,
 		std::shared_ptr<Camera> camera
 	);
 
 private:
 	Transform trf;
 	std::shared_ptr<Mesh> mesh;
+	std::shared_ptr<Material> material;
 };
 

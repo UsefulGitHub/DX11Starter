@@ -9,6 +9,8 @@
 #include "Transform.h"
 #include "Renderable.h"
 #include "Camera.h"
+#include "SimpleShader.h"
+#include "Material.h"
 // Not including the ImGui headers here because they are in DXCore.h,
 // which this includes and inherits from <3.
 
@@ -47,10 +49,15 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 	
 	// Shaders and shader-related constructs
-	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
+	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
+	//Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	
+
+	// SimpleShader constructs (the above shaders can be commented out now, these are just functionalized versions of the above ones)
+	std::shared_ptr<SimpleVertexShader> vs;
+	std::shared_ptr<SimplePixelShader> ps;
+	std::shared_ptr<SimplePixelShader> fps;
+
 	// Other D3D resources for shaders
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
 
@@ -65,5 +72,8 @@ private:
 	std::shared_ptr<Renderable> ent3;
 	std::shared_ptr<Renderable> ent4;
 	std::shared_ptr<Renderable> ent5;
+
+	std::shared_ptr<Material> mat1;
+	std::shared_ptr<Material> mat2;
 };
 

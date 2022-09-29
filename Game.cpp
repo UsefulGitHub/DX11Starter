@@ -112,8 +112,9 @@ void Game::Init()
 		// Set the active vertex and pixel shaders
 		//  - Once you start applying different shaders to different objects,
 		//    these calls will need to happen multiple times per frame
-		context->VSSetShader(vertexShader.Get(), 0, 0);
-		context->PSSetShader(pixelShader.Get(), 0, 0);
+		//  - These SimpleShader call ones will automatically set the input layout
+		vs->SetShader();
+		ps->SetShader();
 
 		// Get size as the next multiple of 16 (instead of hardcoding a size here!)
 		unsigned int size = sizeof(VertexShaderExternalData);
@@ -145,63 +146,14 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
-	// BLOBs (or Binary Large OBjects) for reading raw data from external files
-	// - This is a simplified way of handling big chunks of external data
-	// - Literally just a big array of bytes read from a file
-	ID3DBlob* pixelShaderBlob;
-	ID3DBlob* vertexShaderBlob;
-
 	// Loading shaders
 	//  - Visual Studio will compile our shaders at build time
 	//  - They are saved as .cso (Compiled Shader Object) files
 	//  - We need to load them when the application starts
 	{
-		// Read our compiled shader code files into blobs
-		// - Essentially just "open the file and plop its contents here"
-		// - Uses the custom FixPath() helper from Helpers.h to ensure relative paths
-		// - Note the "L" before the string - this tells the compiler the string uses wide characters
-		D3DReadFileToBlob(FixPath(L"PixelShader.cso").c_str(), &pixelShaderBlob);
-		D3DReadFileToBlob(FixPath(L"VertexShader.cso").c_str(), &vertexShaderBlob);
-
-		// Create the actual Direct3D shaders on the GPU
-		device->CreatePixelShader(
-			pixelShaderBlob->GetBufferPointer(),	// Pointer to blob's contents
-			pixelShaderBlob->GetBufferSize(),		// How big is that data?
-			0,										// No classes in this shader
-			pixelShader.GetAddressOf());			// Address of the ID3D11PixelShader pointer
-
-		device->CreateVertexShader(
-			vertexShaderBlob->GetBufferPointer(),	// Get a pointer to the blob's contents
-			vertexShaderBlob->GetBufferSize(),		// How big is that data?
-			0,										// No classes in this shader
-			vertexShader.GetAddressOf());			// The address of the ID3D11VertexShader pointer
-	}
-
-	// Create an input layout 
-	//  - This describes the layout of data sent to a vertex shader
-	//  - In other words, it describes how to interpret data (numbers) in a vertex buffer
-	//  - Doing this NOW because it requires a vertex shader's byte code to verify against!
-	//  - Luckily, we already have that loaded (the vertex shader blob above)
-	{
-		D3D11_INPUT_ELEMENT_DESC inputElements[2] = {};
-
-		// Set up the first element - a position, which is 3 float values
-		inputElements[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;				// Most formats are described as color channels; really it just means "Three 32-bit floats"
-		inputElements[0].SemanticName = "POSITION";							// This is "POSITION" - needs to match the semantics in our vertex shader input!
-		inputElements[0].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// How far into the vertex is this?  Assume it's after the previous element
-
-		// Set up the second element - a color, which is 4 more float values
-		inputElements[1].Format = DXGI_FORMAT_R32G32B32A32_FLOAT;			// 4x 32-bit floats
-		inputElements[1].SemanticName = "COLOR";							// Match our vertex shader input!
-		inputElements[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;	// After the previous element
-
-		// Create the input layout, verifying our description against actual shader code
-		device->CreateInputLayout(
-			inputElements,							// An array of descriptions
-			2,										// How many elements in that array?
-			vertexShaderBlob->GetBufferPointer(),	// Pointer to the code of a shader that uses this layout
-			vertexShaderBlob->GetBufferSize(),		// Size of the shader code that uses this layout
-			inputLayout.GetAddressOf());			// Address of the resulting ID3D11InputLayout pointer
+		vs = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"VertexShader.cso").c_str());
+		ps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"PixelShader.cso").c_str());
+		fps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"FancyPixelShader.cso").c_str());
 	}
 }
 
@@ -212,6 +164,10 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
+	// Creating materials FOR NOW
+	mat1 = std::make_shared<Material>(vs, ps);
+	mat2 = std::make_shared<Material>(vs, fps);
+	
 	// Creating the triangle
 	{
 	// Create some temporary variables to represent colors
@@ -332,11 +288,11 @@ void Game::CreateGeometry()
 		nonagon = std::make_shared<Mesh>(nonagonVertices, 10, nonagonIndices, 27, device, context);
 
 		// Set up the renderable game objects!
-		ent1 = std::make_shared<Renderable>(triangle);
-		ent2 = std::make_shared<Renderable>(nonagon);
-		ent3 = std::make_shared<Renderable>(nonagon);
-		ent4 = std::make_shared<Renderable>(nonagon);
-		ent5 = std::make_shared<Renderable>(square);
+		ent1 = std::make_shared<Renderable>(triangle, mat1);
+		ent2 = std::make_shared<Renderable>(nonagon, mat1);
+		ent3 = std::make_shared<Renderable>(nonagon, mat1);
+		ent4 = std::make_shared<Renderable>(nonagon, mat1);
+		ent5 = std::make_shared<Renderable>(square, mat1);
 	}
 }
 
@@ -487,11 +443,11 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	ent1->Draw(context, vsConstantBuffer, camera);
-	ent2->Draw(context, vsConstantBuffer, camera);
-	ent3->Draw(context, vsConstantBuffer, camera);
-	ent4->Draw(context, vsConstantBuffer, camera);
-	ent5->Draw(context, vsConstantBuffer, camera);
+	ent1->Draw(context, camera);
+	ent2->Draw(context, camera);
+	ent3->Draw(context, camera);
+	ent4->Draw(context, camera);
+	ent5->Draw(context, camera);
 
 	// The GUI should be the LAST thing drawn before ending the frame!
 	// Draw ImGui
