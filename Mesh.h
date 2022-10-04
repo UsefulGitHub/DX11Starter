@@ -3,6 +3,9 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include "Vertex.h"
+#include <string>
+#include <fstream>
+#include <vector>
 
 class Mesh
 {
@@ -15,6 +18,12 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11Device> device,
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context
 	);
+
+	Mesh(
+		const std::wstring& objFile,
+		Microsoft::WRL::ComPtr<ID3D11Device> device
+	);
+
 	~Mesh();
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer();
