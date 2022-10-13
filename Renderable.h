@@ -5,7 +5,6 @@
 #include "Mesh.h"
 #include <memory>
 #include <wrl/client.h>
-#include "BufferStructs.h"
 #include "Camera.h"
 #include "Material.h"
 

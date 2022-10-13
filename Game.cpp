@@ -3,7 +3,6 @@
 #include "Input.h"
 #include "Helpers.h"
 #include "Mesh.h"
-#include "BufferStructs.h"
 #include "Transform.h"
 
 // Did you know you can press ctrl twice in VS2022 to reveal inline hints? They are pretty useful.
@@ -88,10 +87,9 @@ void Game::Init()
 		1.0f
 	);
 
-	// Helper methods for loading shaders, creating some basic
-	// geometry to draw and some simple camera matrices.
-	//  - You'll be expanding and/or replacing these later
+	// Loads the shaders, then creates our materials
 	LoadShaders();
+	CreateMaterials();
 	CreateGeometry();
 	
 	// Set initial graphics API state
@@ -103,46 +101,11 @@ void Game::Init()
 		// geometric primitives (points, lines or triangles) we want to draw.  
 		// Essentially: "What kind of shape should the GPU draw with our vertices?"
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		// Ensure the pipeline knows how to interpret all the numbers stored in
-		// the vertex buffer. For this course, all of your vertices will probably
-		// have the same layout, so we can just set this once at startup.
-		context->IASetInputLayout(inputLayout.Get());
-
-		// Set the active vertex and pixel shaders
-		//  - Once you start applying different shaders to different objects,
-		//    these calls will need to happen multiple times per frame
-		//  - These SimpleShader call ones will automatically set the input layout
-		vs->SetShader();
-		ps->SetShader();
-
-		// Get size as the next multiple of 16 (instead of hardcoding a size here!)
-		unsigned int size = sizeof(VertexShaderExternalData);
-		size = (size + 15) / 16 * 16; // This will work even if your struct size changes
-		// Basically first it gets the amount of 16s needed to be greater than or equal to the actual size -
-		// For 0 to 15 it will be 1, for 16 to 31 it will be 2, 32 to 47 it will be 3 etc.
-		// Then it multiplies that "number of 16s that are needed" number by 16 so it is a multiple of 16
-
-		// Describe the constant buffer
-		D3D11_BUFFER_DESC cbDesc	= {}; // Sets struct to all zeroes, clean slate (if we don't do this, it could be full of random numbers!)
-		cbDesc.BindFlags			= D3D11_BIND_CONSTANT_BUFFER;
-		cbDesc.ByteWidth			= size; // Must be a multiple of 16
-		// NOTE: This buffer will be read by the gpu and written to by the cpu, probably fairly often (at least once per frame)
-		cbDesc.CPUAccessFlags		= D3D11_CPU_ACCESS_WRITE;
-		cbDesc.Usage				= D3D11_USAGE_DYNAMIC;
-
-		// Create the constant buffer
-		device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
 	}
 }
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files
-// and also created the Input Layout that describes our 
-// vertex data to the rendering pipeline. 
-// - Input Layout creation is done here because it must 
-//    be verified against vertex shader byte code
-// - We'll have that byte code already loaded below
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
@@ -157,7 +120,15 @@ void Game::LoadShaders()
 	}
 }
 
-
+// --------------------------------------------------------
+// Creates the materials we are using
+// --------------------------------------------------------
+void Game::CreateMaterials()
+{
+	std::shared_ptr<Material> mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
+	std::shared_ptr<Material> mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.2f, 0.1f, 1.0f), vs, ps);
+	std::shared_ptr<Material> mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.6f, 0.5f, 0.4f, 1.0f), vs, fps);
+}
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now

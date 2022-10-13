@@ -33,6 +33,7 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders(); 
+	void CreateMaterials();
 	void CreateGeometry();
 
 	// ImGui helper methods
@@ -47,19 +48,11 @@ private:
 	// Buffers to hold actual geometry data
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
-	
-	// Shaders and shader-related constructs
-	//Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
-	//Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 
-	// SimpleShader constructs (the above shaders can be commented out now, these are just functionalized versions of the above ones)
+	// SimpleShader constructs
 	std::shared_ptr<SimpleVertexShader> vs;
 	std::shared_ptr<SimplePixelShader> ps;
 	std::shared_ptr<SimplePixelShader> fps;
-
-	// Other D3D resources for shaders
-	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
 
 	std::shared_ptr<Mesh> triangle;
 	std::shared_ptr<Mesh> square;
