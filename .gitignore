@@ -348,3 +348,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Unignore the Assets folder (the double * means include the subfolders
+!/Assets/**

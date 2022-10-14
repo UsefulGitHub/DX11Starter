@@ -30,7 +30,8 @@ Transform* Renderable::GetTransform()
 
 void Renderable::Draw(
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
-	std::shared_ptr<Camera> camera
+	std::shared_ptr<Camera> camera,
+	float totalTime
 )
 {
 	// Do Simple Shader's stuff here
@@ -43,8 +44,10 @@ void Renderable::Draw(
 	vs->SetMatrix4x4("projection", camera->GetProjection());
 	
 	// Setting all the values in the pixel shader too
-	ps->SetFloat4("colorTint", material->GetColorTint());
-	
+	ps->SetFloat4("colorTint", material->GetColorTint()); // Every pixel shader has a tint
+	// Extra values!! if a variable doesn't exist in our material's pixel shader, SimpleShader simply skips it
+	ps->SetFloat("totalTime", totalTime); // Only some pixel shaders have time
+
 	// Now send it over, then tell it go!
 	vs->CopyAllBufferData();
 	ps->CopyAllBufferData();

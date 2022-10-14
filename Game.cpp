@@ -79,8 +79,8 @@ void Game::Init()
 	// Create our camera
 	camera = std::make_shared<Camera>(
 		0.0f,
-		0.0f,
-		-5.0f,
+		2.5f,
+		-15.0f,
 		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
 		XM_PIDIV4, // Pi divided by 4, 45 degrees
 		1.0f,
@@ -92,6 +92,7 @@ void Game::Init()
 	CreateMaterials();
 	CreateGeometry();
 	CreateRenderables();
+	SetupTransforms();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -127,22 +128,74 @@ void Game::LoadShaders()
 void Game::CreateMaterials()
 {
 	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.2f, 0.1f, 1.0f), vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.2f, 0.1f, 1.0f), vs, ps);
 	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), vs, fps);
 }
 
 // --------------------------------------------------------
-// Creates the geometry we're going to draw - a single triangle for now
+// Loads the meshes from, then constructs them from, files
+// - After this step, the geometry can be reused and drawn over and over by renderables without any more mathematics
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
-	sphere = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device, context);
-	meshes.push_back(sphere);
+	// At position 0: the cube
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), device, context));
+	// At position 1: the cylinder
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cylinder.obj").c_str(), device, context));
+	// At position 2: the helix
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device, context));
+	// At position 3: the quad
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), device, context));
+	// At position 4: the double sided quad
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad_double_sided.obj").c_str(), device, context));
+	// At position 5: the sphere
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), device, context));
+	// At position 6: the torus
+	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), device, context));
 }
 
+// --------------------------------------------------------
+// Fills the renderables array
+// - Assembles the renderables inside from meshes and materials
+// --------------------------------------------------------
 void Game::CreateRenderables()
 {
-	ent1 = std::make_shared<Renderable>(meshes[0], mat3);
+	// At position 0: the cube
+	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat1));
+	// At position 1: the cylinder
+	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat2));
+	// At position 2: the helix
+	renderables.push_back(std::make_shared<Renderable>(meshes[2], mat3));
+	// At position 3: the quad
+	renderables.push_back(std::make_shared<Renderable>(meshes[3], mat1));
+	// At position 4: the double sided quad
+	renderables.push_back(std::make_shared<Renderable>(meshes[4], mat2));
+	// At position 5: the sphere
+	renderables.push_back(std::make_shared<Renderable>(meshes[5], mat3));
+	// At position 6: the torus
+	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat1));
+}
+
+// --------------------------------------------------------
+// Fills the transforms array
+// - Also gives the space to adjust transforms before the game starts
+// --------------------------------------------------------
+void Game::SetupTransforms()
+{
+	for (int i = 0; i < renderables.size(); i++)
+	{
+		// Remember that transforms (the array) is all pointers, no real transforms
+		transforms.push_back(renderables[i]->GetTransform());
+	}
+
+	// Now we can adjust them before the game begins if needed
+	transforms[0]->SetPosition(-9.0, 0.0, 0.0);
+	transforms[1]->SetPosition(-6.0, 0.0, 0.0);
+	transforms[2]->SetPosition(-3.0, 0.0, 0.0);
+	transforms[3]->SetPosition(0.0, 0.0, 0.0);
+	transforms[4]->SetPosition(3.0, 0.0, 0.0);
+	transforms[5]->SetPosition(6.0, 0.0, 0.0);
+	transforms[6]->SetPosition(9.0, 0.0, 0.0);
 }
 
 // --------------------------------------------------------
@@ -254,25 +307,6 @@ void Game::Update(float deltaTime, float totalTime)
 		//trf = nullptr;
 		Quit();
 	}
-
-	//Transform* trf1 = ent1->GetTransform();
-	//trf1->SetScale(0.2f, 0.2f, 0.2f);
-	//trf1->SetPosition(0.0f, sin(totalTime) * deltaTime, 0.0f);
-
-	//Transform* trf2 = ent2->GetTransform();
-	//trf2->SetPosition(sin(totalTime) * 10.0f * deltaTime, -0.5f, 0.0f);
-	//trf2->SetScale(0.5f, 0.4f, 1.0f);
-
-	//Transform* trf3 = ent3->GetTransform();
-	//trf3->Rotate(0.1f * deltaTime, 0.1f * deltaTime, 0.1f * deltaTime);
-
-	//Transform* trf4 = ent4->GetTransform();
-	//trf4->SetScale(sin(totalTime) * 10.0f * deltaTime, sin(totalTime) * 10 * deltaTime, 0.0f);
-	//trf4->SetPosition((sin(totalTime) * 10.0f) * deltaTime, -0.2f, 0.1f);
-
-	//Transform* trf5 = ent5->GetTransform();
-	//trf5->Rotate(0.0f, 0.0f, 0.2f * deltaTime);
-	//trf5->SetScale(0.6f, 0.6f, 1.0f);
 }
 
 // --------------------------------------------------------
@@ -292,7 +326,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	ent1->Draw(context, camera);
+	for (int i = 0; i < renderables.size(); i++)
+	{
+		renderables[i]->Draw(context, camera, totalTime);
+	}
 
 	// The GUI should be the LAST thing drawn before ending the frame!
 	// Draw ImGui

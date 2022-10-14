@@ -36,6 +36,7 @@ private:
 	void CreateMaterials();
 	void CreateGeometry();
 	void CreateRenderables();
+	void SetupTransforms();
 
 	// ImGui helper methods
 	ImGuiIO PrepImGui(float deltaTime);
@@ -60,9 +61,6 @@ private:
 
 	// Meshes
 	std::vector<std::shared_ptr<Mesh>> meshes;
-	std::shared_ptr<Mesh> sphere;
-	//std::shared_ptr<Mesh> square;
-	//std::shared_ptr<Mesh> nonagon;
 
 	// Materials
 	std::vector<std::shared_ptr<Material>> materials;
@@ -72,10 +70,9 @@ private:
 
 	// Renderables
 	std::vector<std::shared_ptr<Renderable>> renderables;
-	std::shared_ptr<Renderable> ent1;
-	//std::shared_ptr<Renderable> ent2;
-	//std::shared_ptr<Renderable> ent3;
-	//std::shared_ptr<Renderable> ent4;
-	//std::shared_ptr<Renderable> ent5;
+
+	// Transforms
+	// - This is uniquely a vector of plain pointers, because renderables return pointers to their transforms
+	std::vector<Transform*> transforms;
 };
 
