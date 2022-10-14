@@ -91,7 +91,8 @@ void Game::Init()
 	LoadShaders();
 	CreateMaterials();
 	CreateGeometry();
-	
+	CreateRenderables();
+
 	// Set initial graphics API state
 	//  - These settings persist until we change them
 	//  - Some of these, like the primitive topology & input layout, probably won't change
@@ -125,9 +126,9 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateMaterials()
 {
-	std::shared_ptr<Material> mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
-	std::shared_ptr<Material> mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.2f, 0.1f, 1.0f), vs, ps);
-	std::shared_ptr<Material> mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.6f, 0.5f, 0.4f, 1.0f), vs, fps);
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.2f, 0.1f, 1.0f), vs, ps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.6f, 0.5f, 0.4f, 1.0f), vs, fps);
 }
 
 // --------------------------------------------------------
@@ -135,7 +136,16 @@ void Game::CreateMaterials()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
-	
+	sphere = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device, context);
+	//ent2 = std::make_shared<Renderable>(
+	//ent3 = std::make_shared<Renderable>(
+	//ent4 = std::make_shared<Renderable>(
+	//ent5 = std::make_shared<Renderable>(
+}
+
+void Game::CreateRenderables()
+{
+	ent1 = std::make_shared<Renderable>(sphere, mat1);
 }
 
 // --------------------------------------------------------
@@ -248,24 +258,24 @@ void Game::Update(float deltaTime, float totalTime)
 		Quit();
 	}
 
-	Transform* trf1 = ent1->GetTransform();
-	trf1->SetScale(0.2f, 0.2f, 0.2f);
-	trf1->SetPosition(0.0f, sin(totalTime) * deltaTime, 0.0f);
+	//Transform* trf1 = ent1->GetTransform();
+	//trf1->SetScale(0.2f, 0.2f, 0.2f);
+	//trf1->SetPosition(0.0f, sin(totalTime) * deltaTime, 0.0f);
 
-	Transform* trf2 = ent2->GetTransform();
-	trf2->SetPosition(sin(totalTime) * 10.0f * deltaTime, -0.5f, 0.0f);
-	trf2->SetScale(0.5f, 0.4f, 1.0f);
+	//Transform* trf2 = ent2->GetTransform();
+	//trf2->SetPosition(sin(totalTime) * 10.0f * deltaTime, -0.5f, 0.0f);
+	//trf2->SetScale(0.5f, 0.4f, 1.0f);
 
-	Transform* trf3 = ent3->GetTransform();
-	trf3->Rotate(0.1f * deltaTime, 0.1f * deltaTime, 0.1f * deltaTime);
+	//Transform* trf3 = ent3->GetTransform();
+	//trf3->Rotate(0.1f * deltaTime, 0.1f * deltaTime, 0.1f * deltaTime);
 
-	Transform* trf4 = ent4->GetTransform();
-	trf4->SetScale(sin(totalTime) * 10.0f * deltaTime, sin(totalTime) * 10 * deltaTime, 0.0f);
-	trf4->SetPosition((sin(totalTime) * 10.0f) * deltaTime, -0.2f, 0.1f);
+	//Transform* trf4 = ent4->GetTransform();
+	//trf4->SetScale(sin(totalTime) * 10.0f * deltaTime, sin(totalTime) * 10 * deltaTime, 0.0f);
+	//trf4->SetPosition((sin(totalTime) * 10.0f) * deltaTime, -0.2f, 0.1f);
 
-	Transform* trf5 = ent5->GetTransform();
-	trf5->Rotate(0.0f, 0.0f, 0.2f * deltaTime);
-	trf5->SetScale(0.6f, 0.6f, 1.0f);
+	//Transform* trf5 = ent5->GetTransform();
+	//trf5->Rotate(0.0f, 0.0f, 0.2f * deltaTime);
+	//trf5->SetScale(0.6f, 0.6f, 1.0f);
 }
 
 // --------------------------------------------------------
@@ -286,10 +296,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	ent1->Draw(context, camera);
-	ent2->Draw(context, camera);
-	ent3->Draw(context, camera);
-	ent4->Draw(context, camera);
-	ent5->Draw(context, camera);
+	//ent2->Draw(context, camera);
+	//ent3->Draw(context, camera);
+	//ent4->Draw(context, camera);
+	//ent5->Draw(context, camera);
 
 	// The GUI should be the LAST thing drawn before ending the frame!
 	// Draw ImGui

@@ -35,6 +35,7 @@ private:
 	void LoadShaders(); 
 	void CreateMaterials();
 	void CreateGeometry();
+	void CreateRenderables();
 
 	// ImGui helper methods
 	ImGuiIO PrepImGui(float deltaTime);
@@ -54,7 +55,7 @@ private:
 	std::shared_ptr<SimplePixelShader> ps;
 	std::shared_ptr<SimplePixelShader> fps;
 
-	std::shared_ptr<Mesh> triangle;
+	std::shared_ptr<Mesh> sphere;
 	std::shared_ptr<Mesh> square;
 	std::shared_ptr<Mesh> nonagon;
 
@@ -68,5 +69,6 @@ private:
 
 	std::shared_ptr<Material> mat1;
 	std::shared_ptr<Material> mat2;
+	std::shared_ptr<Material> mat3;
 };
 
