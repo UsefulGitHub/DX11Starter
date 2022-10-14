@@ -128,7 +128,7 @@ void Game::CreateMaterials()
 {
 	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
 	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.2f, 0.1f, 1.0f), vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.6f, 0.5f, 0.4f, 1.0f), vs, fps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), vs, fps);
 }
 
 // --------------------------------------------------------
@@ -137,15 +137,12 @@ void Game::CreateMaterials()
 void Game::CreateGeometry()
 {
 	sphere = std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device, context);
-	//ent2 = std::make_shared<Renderable>(
-	//ent3 = std::make_shared<Renderable>(
-	//ent4 = std::make_shared<Renderable>(
-	//ent5 = std::make_shared<Renderable>(
+	meshes.push_back(sphere);
 }
 
 void Game::CreateRenderables()
 {
-	ent1 = std::make_shared<Renderable>(sphere, mat1);
+	ent1 = std::make_shared<Renderable>(meshes[0], mat3);
 }
 
 // --------------------------------------------------------
@@ -296,10 +293,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 
 	ent1->Draw(context, camera);
-	//ent2->Draw(context, camera);
-	//ent3->Draw(context, camera);
-	//ent4->Draw(context, camera);
-	//ent5->Draw(context, camera);
 
 	// The GUI should be the LAST thing drawn before ending the frame!
 	// Draw ImGui

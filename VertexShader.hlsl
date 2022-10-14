@@ -7,7 +7,6 @@ cbuffer ExternalData : register(b0) // b0 means the first buffer register
 	// - (we have to know first, and it has to be reliable)
 	// - The shader will take the first 4 bytes and make a float4, and the next 3 and make a float3
 	// - If nothing has been put in b0, it will take all the zeroes in the register and use them
-	float4 colorTint;
 	matrix world;
 	matrix view;
 	matrix projection;
@@ -43,7 +42,7 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;	// XYZW position (System Value Position)
-	float4 color			: COLOR;        // RGBA color
+	float2 uv				: TEXCOORD;		// UV position
 };
 
 // --------------------------------------------------------
@@ -70,10 +69,8 @@ VertexToPixel main( VertexShaderInput input )
 	matrix wvp = mul(projection, mul(view, world));
 	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
 
-	// Pass the color through 
-	// - The values will be interpolated per-pixel by the rasterizer
-	// - We don't need to alter it here, but we do need to send it to the pixel shader
-	output.color = (0, 0, 0, 0);
+	// The uvs are just passing through here
+	output.uv = input.uv;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

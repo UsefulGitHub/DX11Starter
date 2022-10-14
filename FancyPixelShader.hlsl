@@ -1,3 +1,7 @@
+cbuffer externalData : register(b0) // b0 means the first buffer register
+{
+	float4 colorTint;
+}
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -12,7 +16,7 @@ struct VertexToPixel
 	//  |    |                |
 	//  v    v                v
 	float4 screenPosition	: SV_POSITION;
-	float4 color			: COLOR;
+	float2 uv				: TEXCOORD;
 };
 
 // --------------------------------------------------------
@@ -27,5 +31,5 @@ struct VertexToPixel
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// WE NEED TO MAKE THIS FANCY
-	return float4(1,0,0,1);
+	return float4(1,1,0.5,1) * colorTint;
 }

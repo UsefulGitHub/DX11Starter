@@ -55,20 +55,27 @@ private:
 	std::shared_ptr<SimplePixelShader> ps;
 	std::shared_ptr<SimplePixelShader> fps;
 
-	std::shared_ptr<Mesh> sphere;
-	std::shared_ptr<Mesh> square;
-	std::shared_ptr<Mesh> nonagon;
-
+	// Camera (The)
 	std::shared_ptr<Camera> camera;
 
-	std::shared_ptr<Renderable> ent1;
-	std::shared_ptr<Renderable> ent2;
-	std::shared_ptr<Renderable> ent3;
-	std::shared_ptr<Renderable> ent4;
-	std::shared_ptr<Renderable> ent5;
+	// Meshes
+	std::vector<std::shared_ptr<Mesh>> meshes;
+	std::shared_ptr<Mesh> sphere;
+	//std::shared_ptr<Mesh> square;
+	//std::shared_ptr<Mesh> nonagon;
 
+	// Materials
+	std::vector<std::shared_ptr<Material>> materials;
 	std::shared_ptr<Material> mat1;
 	std::shared_ptr<Material> mat2;
 	std::shared_ptr<Material> mat3;
+
+	// Renderables
+	std::vector<std::shared_ptr<Renderable>> renderables;
+	std::shared_ptr<Renderable> ent1;
+	//std::shared_ptr<Renderable> ent2;
+	//std::shared_ptr<Renderable> ent3;
+	//std::shared_ptr<Renderable> ent4;
+	//std::shared_ptr<Renderable> ent5;
 };
 
