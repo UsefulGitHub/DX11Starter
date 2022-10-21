@@ -34,6 +34,8 @@ Game::Game(HINSTANCE hInstance)
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
+	// Initialize all the member variables to appease C++
+	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	//trf = new Transform();
@@ -93,6 +95,7 @@ void Game::Init()
 	CreateGeometry();
 	CreateRenderables();
 	SetupTransforms();
+	InitLighting();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -127,9 +130,9 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateMaterials()
 {
-	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.2f, 0.1f, 1.0f), vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), vs, fps);
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), 0.9f, vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.2f, 0.1f, 1.0f), 0.2f, vs, ps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), 0.5f, vs, ps);
 }
 
 // --------------------------------------------------------
@@ -196,6 +199,16 @@ void Game::SetupTransforms()
 	transforms[4]->SetPosition(3.0, 0.0, 0.0);
 	transforms[5]->SetPosition(6.0, 0.0, 0.0);
 	transforms[6]->SetPosition(9.0, 0.0, 0.0);
+}
+
+// --------------------------------------------------------
+// Makes the light objects and sets ambient light values
+// - Also gives the space to adjust colors/transforms before the game starts
+// --------------------------------------------------------
+void Game::InitLighting()
+{
+	ambientLight = DirectX::XMFLOAT3(0.05f, 0.15f, 0.24f);
+
 }
 
 // --------------------------------------------------------
@@ -328,6 +341,8 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (int i = 0; i < renderables.size(); i++)
 	{
+		// All the renderables get the ambient light cast onto their pixel shader
+		renderables[i]->GetMaterial()->GetPS()->SetFloat3("ambientLight", ambientLight);
 		renderables[i]->Draw(context, camera, totalTime);
 	}
 

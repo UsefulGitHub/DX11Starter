@@ -42,9 +42,12 @@ void Renderable::Draw(
 	vs->SetMatrix4x4("world", trf.GetWorldMatrix());
 	vs->SetMatrix4x4("view", camera->GetView());
 	vs->SetMatrix4x4("projection", camera->GetProjection());
+	vs->SetMatrix4x4("worldInvTrans", trf.GetWorldInverseTransposeMatrix());
 	
 	// Setting all the values in the pixel shader too
 	ps->SetFloat4("colorTint", material->GetColorTint()); // Every pixel shader has a tint
+	ps->SetFloat("roughness", material->GetRoughness()); // And a roughness for specular lighting
+	ps->SetFloat3("cameraPosition", camera->GetTransform().GetPosition()); // And specular needs the camera position
 	// Extra values!! if a variable doesn't exist in our material's pixel shader, SimpleShader simply skips it
 	ps->SetFloat("totalTime", totalTime); // Only some pixel shaders have time
 

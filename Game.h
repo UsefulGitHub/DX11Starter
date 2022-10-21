@@ -37,6 +37,7 @@ private:
 	void CreateGeometry();
 	void CreateRenderables();
 	void SetupTransforms();
+	void InitLighting();
 
 	// ImGui helper methods
 	ImGuiIO PrepImGui(float deltaTime);
@@ -74,5 +75,8 @@ private:
 	// Transforms
 	// - This is uniquely a vector of plain pointers, because renderables return pointers to their transforms
 	std::vector<Transform*> transforms;
+
+	// Lighting
+	DirectX::XMFLOAT3 ambientLight;
 };
 

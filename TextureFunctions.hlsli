@@ -1,0 +1,4 @@
+#ifndef __GGP_TEXTURE_FUNCTIONS__
+#define __GGP_TEXTURE_FUNCTIONS__
+
+#endif

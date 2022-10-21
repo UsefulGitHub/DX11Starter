@@ -1,3 +1,5 @@
+#include "structs.hlsli"
+
 cbuffer ExternalData : register(b0) // b0 means the first buffer register
 {
 	// Describing the layout of this buffer
@@ -10,6 +12,7 @@ cbuffer ExternalData : register(b0) // b0 means the first buffer register
 	matrix world;
 	matrix view;
 	matrix projection;
+	matrix worldInvTrans;
 }
 
 // Struct representing a single vertex worth of data
@@ -27,22 +30,6 @@ struct VertexShaderInput
 	float3 localPosition	: POSITION;     // XYZ position
 	float2 uv				: TEXCOORD;     // UV position
 	float3 normal			: NORMAL;		// Normal
-};
-
-// Struct representing the data we're sending down the pipeline
-// - Should match our pixel shader's input (hence the name: Vertex to Pixel)
-// - At a minimum, we need a piece of data defined tagged as SV_POSITION
-// - The name of the struct itself is unimportant, but should be descriptive
-// - Each variable must have a semantic, which defines its usage
-struct VertexToPixel
-{
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-	float4 screenPosition	: SV_POSITION;	// XYZW position (System Value Position)
-	float2 uv				: TEXCOORD;		// UV position
 };
 
 // --------------------------------------------------------
@@ -67,10 +54,12 @@ VertexToPixel main( VertexShaderInput input )
 	//   a perspective projection matrix, which we'll get to in the future).
 	// output.screenPosition = float4(input.localPosition + offset, 1.0f);
 	matrix wvp = mul(projection, mul(view, world));
+	
+	// Here go the output values
 	output.screenPosition = mul(wvp, float4(input.localPosition, 1.0f));
-
-	// The uvs are just passing through here
-	output.uv = input.uv;
+	output.uv = input.uv; // The uvs are just passing through here
+	output.normal = mul((float3x3)worldInvTrans, input.normal);
+	output.worldPosition = mul(world, float4(input.localPosition, 1.0f)).xyz;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)
