@@ -39,6 +39,8 @@ Game::Game(HINSTANCE hInstance)
 	firstLight = {};
 	dir2 = {};
 	dir3 = {};
+	pl1 = {};
+	pl2 = {};
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	//trf = new Transform();
@@ -232,6 +234,22 @@ void Game::InitLighting()
 	dir3.Direction = DirectX::XMFLOAT3(0.1, -1, 0.2);
 	dir3.Color = DirectX::XMFLOAT3(0.153, 0.75, 0.135);
 	dir3.Intensity = 1.0f;
+
+	// Point Light 1
+	pl1 = {};
+	pl1.Type = LIGHT_TYPE_POINT;
+	pl1.Position = DirectX::XMFLOAT3(0.1, -1, 0.2);
+	pl1.Range = 4.6f;
+	pl1.Color = DirectX::XMFLOAT3(0.9, 0.75, 0.135);
+	pl1.Intensity = 1.0f;
+
+	// Point Light 2
+	pl2 = {};
+	pl2.Type = LIGHT_TYPE_POINT;
+	pl2.Position = DirectX::XMFLOAT3(0.9, -1.6, 4.0);
+	pl2.Range = 15.0f;
+	pl2.Color = DirectX::XMFLOAT3(0.4, 0.85, 0.35);
+	pl2.Intensity = 1.0f;
 }
 
 // -dir3-------------------------------------------------------
@@ -295,18 +313,27 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 	ImGui::Text("ms/frame: %.3f - FPS: %.1f", 1000.0f / framerate, framerate);
 	ImGui::Text("display size X: %.0f", frameIO.DisplaySize.x);
 	ImGui::Text("display size Y: %.0f", frameIO.DisplaySize.y);
-
 	ImGui::End(); // Ends the current window
 
-	ImGui::Begin("Camera Editor"); // Everything after is part of the window
-	ImGui::Text("To be improved... I tried interfacing with the transform but ran out of time.");
+	//ImGui::Begin("Camera Editor"); // Everything after is part of the window
+	//ImGui::Text("To be improved... I tried interfacing with the transform but ran out of time.");
+	//if (ImGui::SliderFloat("Field of View", camera->GetFOV(), XM_PIDIV4, XM_PIDIV2))
+	//{
+	//	camera->UpdateProjectionMatrix(*camera->GetAspectRatio());
+	//}
+	//ImGui::End(); // Ends the current window
 
-	if (ImGui::SliderFloat("Field of View", camera->GetFOV(), XM_PIDIV4, XM_PIDIV2))
-	{
-		camera->UpdateProjectionMatrix(*camera->GetAspectRatio());
-	}
-
-	ImGui::End(); // Ends the current window
+	ImGui::Begin("Light Editor");
+	ImGui::Text("Point Light Positions");
+	ImGui::SliderFloat3("Point Light 1", &pl1.Position.x, -10.0f, 10.0f);
+	ImGui::SliderFloat3("Point Light 2", &pl2.Position.x, -10.0f, 10.0f);
+	ImGui::Text("Point Light Colors"); // These just control the position right now- why is that?
+	ImGui::SliderFloat3("Point Light 1", &pl1.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("Point Light 2", &pl2.Color.x, 0.0f, 1.0f);
+	ImGui::Text("Point Light Ranges");
+	ImGui::SliderFloat("Point Light 1", &pl1.Range, 0.0f, 20.0f);
+	ImGui::SliderFloat("Point Light 2", &pl2.Range, 0.0f, 20.0f);
+	ImGui::End();
 }
 
 // --------------------------------------------------------
@@ -380,6 +407,16 @@ void Game::Draw(float deltaTime, float totalTime)
 		renderables[i]->GetMaterial()->GetPS()->SetData(
 			"directionalLight3",
 			&dir3,
+			sizeof(Light)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"pointLight1",
+			&pl1,
+			sizeof(Light)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"pointLight2",
+			&pl2,
 			sizeof(Light)
 		);
 		renderables[i]->Draw(context, camera, totalTime);

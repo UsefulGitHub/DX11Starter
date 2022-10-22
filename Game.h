@@ -82,5 +82,7 @@ private:
 	Light firstLight;
 	Light dir2;
 	Light dir3;
+	Light pl1;
+	Light pl2;
 };
 

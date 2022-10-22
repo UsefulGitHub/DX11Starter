@@ -19,9 +19,14 @@ struct Light
 	float3 Padding;
 };
 
-float3 NormDirToLight(Light light)
+float3 NormDirToDirLight(Light light)
 {
 	return normalize(-light.Direction);
+}
+
+float3 NormDirToPointLight(Light light, float3 worldPos)
+{
+	return normalize(worldPos - light.Position);
 }
 
 float3 Diffuse(float3 normal, float3 dirToLight)
@@ -43,9 +48,48 @@ float SpecExponent(float roughness)
 	return (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 }
 
-float3 AddDirectionalLight(Light light, float3 normal, float4 colorTint, float3 reflection, float3 view, float specExponent)
+float Attenuate(Light light, float3 worldPos)
 {
-	return Specular(reflection, view, specExponent) + Diffuse(normal, NormDirToLight(light)) * light.Color * (float3)colorTint;
+	float dist = distance(light.Position, worldPos);
+	float att = saturate(1.0f - (dist * dist / (light.Range * light.Range)));
+	return att * att;
+}
+
+// Call this on each directional light to get its effects on the lighting as a whole
+float3 AddDirectionalLight(
+	Light light,
+	float3 normal,
+	float4 colorTint,
+	float3 reflection,
+	float3 view,
+	float specExponent
+)
+{
+	return Specular(reflection, view, specExponent)
+		+ Diffuse(normal, NormDirToDirLight(light))
+		* light.Color
+		* (float3)colorTint;
+}
+
+// Call this on each point light to get its effects on the lighting as a whole
+float3 AddPointLight(
+	Light light,
+	float3 normal,
+	float4 colorTint,
+	float3 reflection,
+	float3 view,
+	float3 specExponent,
+	float3 worldPos
+)
+{
+	return Attenuate(light, worldPos) * // Multiply the light calculated below by its attenuation
+		(
+			// Effectively the directional light equation below here
+			Specular(reflection, view, specExponent)
+			+ Diffuse(normal, NormDirToPointLight(light, worldPos))
+			* light.Color
+			* (float3)colorTint
+		);
 }
 
 #endif

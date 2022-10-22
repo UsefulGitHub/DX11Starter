@@ -10,6 +10,8 @@ cbuffer externalData : register(b0) // b0 means the first buffer register
 	Light directionalLight1;
 	Light directionalLight2;
 	Light directionalLight3;
+	Light pointLight1;
+	Light pointLight2;
 }
 
 // --------------------------------------------------------
@@ -31,9 +33,48 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float specExponent = SpecExponent(roughness);
 	// Add light toghether
 	float3 returnedLight =
-		AddDirectionalLight(directionalLight1, normal, colorTint, reflect(directionalLight1.Direction, normal), view, specExponent) +
-		AddDirectionalLight(directionalLight2, normal, colorTint, reflect(directionalLight2.Direction, normal), view, specExponent) +
-		AddDirectionalLight(directionalLight3, normal, colorTint, reflect(directionalLight3.Direction, normal), view, specExponent) +
+		AddDirectionalLight(
+			directionalLight1,
+			normal,
+			colorTint,
+			reflect(NormDirToDirLight(directionalLight1), normal),
+			view,
+			specExponent
+		) +
+		AddDirectionalLight(
+			directionalLight2,
+			normal,
+			colorTint,
+			reflect(NormDirToDirLight(directionalLight2), normal),
+			view,
+			specExponent
+		) +
+		AddDirectionalLight(
+			directionalLight3,
+			normal,
+			colorTint,
+			reflect(NormDirToDirLight(directionalLight3), normal),
+			view,
+			specExponent
+		) +
+		AddPointLight(
+			pointLight1,
+			normal,
+			colorTint,
+			reflect(NormDirToPointLight(pointLight1, input.worldPosition), normal),
+			view,
+			specExponent,
+			input.worldPosition
+		) +
+		AddPointLight(
+			pointLight2,
+			normal,
+			colorTint,
+			reflect(NormDirToPointLight(pointLight2, input.worldPosition), normal),
+			view,
+			specExponent,
+			input.worldPosition
+		) +
 		((float3)colorTint * ambientLight);
 
 	// Just return the input color
