@@ -155,7 +155,7 @@
     <None Include="Structs.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="LightFunctions.hlsli">
+    <None Include="LightHeader.hlsli">
       <Filter>Shaders</Filter>
     </None>
     <None Include="TextureFunctions.hlsli">

@@ -202,7 +202,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="LightFunctions.hlsli" />
+    <None Include="LightHeader.hlsli" />
     <None Include="Structs.hlsli" />
     <None Include="TextureFunctions.hlsli" />
   </ItemGroup>

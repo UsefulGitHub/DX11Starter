@@ -36,6 +36,9 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	// Initialize all the member variables to appease C++
 	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
+	firstLight = {};
+	dir2 = {};
+	dir3 = {};
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	//trf = new Transform();
@@ -130,9 +133,9 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateMaterials()
 {
-	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), 0.9f, vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.2f, 0.1f, 1.0f), 0.2f, vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), 0.5f, vs, ps);
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), 0.06f, vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.5f, 0.1f, 1.0f), 0.02f, vs, ps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), 0.05f, vs, ps);
 }
 
 // --------------------------------------------------------
@@ -208,10 +211,30 @@ void Game::SetupTransforms()
 void Game::InitLighting()
 {
 	ambientLight = DirectX::XMFLOAT3(0.05f, 0.15f, 0.24f);
+	
+	// Directional Light 1
+	firstLight = {};
+	firstLight.Type = LIGHT_TYPE_DIRECTIONAL;
+	firstLight.Direction = DirectX::XMFLOAT3(1, 0.5, 0.2);
+	firstLight.Color = DirectX::XMFLOAT3(0.53, 0.05, 0.135);
+	firstLight.Intensity = 1.0f;
 
+	// Directional Light 2
+	dir2= {};
+	dir2.Type = LIGHT_TYPE_DIRECTIONAL;
+	dir2.Direction = DirectX::XMFLOAT3(0.2, 0.2, 0.2);
+	dir2.Color = DirectX::XMFLOAT3(0.9, 0.22, 0.8);
+	dir2.Intensity = 1.0f;
+
+	// Directional Light 3
+	dir3= {};
+	dir3.Type = LIGHT_TYPE_DIRECTIONAL;
+	dir3.Direction = DirectX::XMFLOAT3(0.1, -1, 0.2);
+	dir3.Color = DirectX::XMFLOAT3(0.153, 0.75, 0.135);
+	dir3.Intensity = 1.0f;
 }
 
-// --------------------------------------------------------
+// -dir3-------------------------------------------------------
 // Do this first thing in Update()!
 //  - Feeds fresh input data to ImGui
 //  - Determines whether to capture input
@@ -343,6 +366,22 @@ void Game::Draw(float deltaTime, float totalTime)
 	{
 		// All the renderables get the ambient light cast onto their pixel shader
 		renderables[i]->GetMaterial()->GetPS()->SetFloat3("ambientLight", ambientLight);
+		// They also get the directional light
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"directionalLight1",
+			&firstLight,
+			sizeof(Light)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"directionalLight2",
+			&dir2,
+			sizeof(Light)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"directionalLight3",
+			&dir3,
+			sizeof(Light)
+		);
 		renderables[i]->Draw(context, camera, totalTime);
 	}
 

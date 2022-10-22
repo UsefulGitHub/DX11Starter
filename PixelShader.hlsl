@@ -1,4 +1,5 @@
 #include "structs.hlsli"
+#include "LightHeader.hlsli"
 
 cbuffer externalData : register(b0) // b0 means the first buffer register
 {
@@ -6,6 +7,9 @@ cbuffer externalData : register(b0) // b0 means the first buffer register
 	float roughness;
 	float3 cameraPosition;
 	float3 ambientLight;
+	Light directionalLight1;
+	Light directionalLight2;
+	Light directionalLight3;
 }
 
 // --------------------------------------------------------
@@ -20,11 +24,21 @@ cbuffer externalData : register(b0) // b0 means the first buffer register
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Interpolation of normals across the face of a triangle results in non-unit vectors (so we do this)
-	input.normal = normalize(input.normal);
+	float3 normal = normalize(input.normal);
+
+	// Call the lighting math functions
+	float3 view = normalize(cameraPosition - input.worldPosition);
+	float specExponent = SpecExponent(roughness);
+	// Add light toghether
+	float3 returnedLight =
+		AddDirectionalLight(directionalLight1, normal, colorTint, reflect(directionalLight1.Direction, normal), view, specExponent) +
+		AddDirectionalLight(directionalLight2, normal, colorTint, reflect(directionalLight2.Direction, normal), view, specExponent) +
+		AddDirectionalLight(directionalLight3, normal, colorTint, reflect(directionalLight3.Direction, normal), view, specExponent) +
+		((float3)colorTint * ambientLight);
 
 	// Just return the input color
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-	return float4(((float3) colorTint + ambientLight), 1.0f);
+	return float4(returnedLight, 1.0f);
 }

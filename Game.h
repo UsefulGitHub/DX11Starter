@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include "Material.h"
+#include "Light.h"
 // Not including the ImGui headers here because they are in DXCore.h,
 // which this includes and inherits from <3.
 
@@ -78,5 +79,8 @@ private:
 
 	// Lighting
 	DirectX::XMFLOAT3 ambientLight;
+	Light firstLight;
+	Light dir2;
+	Light dir3;
 };
 
