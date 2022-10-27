@@ -90,14 +90,13 @@ void Game::Init()
 		-15.0f,
 		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
 		XM_PIDIV4, // Pi divided by 4, 45 degrees
-		1.0f,
+		2.0f,
 		1.0f
 	);
 
 	// Loads the shaders, then creates our materials
 	LoadShaders();
-	LoadTextures();
-	CreateMaterials();
+	LoadTexturesAndCreateMaterials();
 	CreateGeometry();
 	CreateRenderables();
 	SetupTransforms();
@@ -134,18 +133,10 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 // Loads textures with the CreateWICTextureFromFile() function
 // --------------------------------------------------------
-void Game::LoadTextures()
+void Game::LoadTexturesAndCreateMaterials()
 {
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_albedo.tif").c_str(),
-		nullptr,
-		dirtSRV.GetAddressOf()
-	);
-	
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> dirtSamplerState;
+	// Create a sampler state that holds our texture sampling options
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> sampState;
 	
 	D3D11_SAMPLER_DESC sampDesc = {};
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -155,17 +146,80 @@ void Game::LoadTextures()
 	sampDesc.MaxAnisotropy = 8;
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	device->CreateSamplerState(&sampDesc, dirtSamplerState.GetAddressOf());
-}
+	device->CreateSamplerState(&sampDesc, sampState.GetAddressOf());
 
-// --------------------------------------------------------
-// Creates the materials we are using
-// --------------------------------------------------------
-void Game::CreateMaterials()
-{
-	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.5f, 1.0f, 1.0f), 0.06f, vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.4f, 0.5f, 0.1f, 1.0f), 0.02f, vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(0.3f, 0.2f, 0.9f, 1.0f), 0.05f, vs, ps);
+	// Load textures
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_albedo.tif").c_str(),
+		nullptr,
+		dirtSRV.GetAddressOf()
+	);
+	
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSpecSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_roughness.tif").c_str(),
+		nullptr,
+		dirtSpecSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_albedo.tif").c_str(),
+		nullptr,
+		mossSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossSpecSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_roughness.tif").c_str(),
+		nullptr,
+		mossSpecSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_albedo.tif").c_str(),
+		nullptr,
+		barkSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkSpecSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_roughness.tif").c_str(),
+		nullptr,
+		barkSpecSRV.GetAddressOf()
+	);
+
+	// Create materials
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.9f, 1.0f, 1.0f), 0.06f, vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.8f, 0.9f, 0.1f, 1.0f), 0.02f, vs, ps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.82f, 0.9f, 1.0f), 0.05f, vs, ps);
+
+	// Assign textures to materials
+	mat1->AddTextureSampler("BasicSampler", sampState);
+	mat1->AddTextureSRV("SurfaceTexture", dirtSRV);
+	mat1->AddTextureSRV("SpecularTexture", dirtSpecSRV);
+
+	mat2->AddTextureSampler("BasicSampler", sampState);
+	mat2->AddTextureSRV("SurfaceTexture", mossSRV);
+	mat2->AddTextureSRV("SpecularTexture", mossSpecSRV);
+
+	mat3->AddTextureSampler("BasicSampler", sampState);
+	mat3->AddTextureSRV("SurfaceTexture", barkSRV);
+	mat3->AddTextureSRV("SpecularTexture", barkSpecSRV);
 }
 
 // --------------------------------------------------------
@@ -246,7 +300,7 @@ void Game::InitLighting()
 	firstLight = {};
 	firstLight.Type = LIGHT_TYPE_DIRECTIONAL;
 	firstLight.Direction = DirectX::XMFLOAT3(1, 0.5, 0.2);
-	firstLight.Color = DirectX::XMFLOAT3(0.53, 0.05, 0.135);
+	firstLight.Color = DirectX::XMFLOAT3(0.53, 0.05, 0.35);
 	firstLight.Intensity = 1.0f;
 
 	// Directional Light 2
@@ -260,7 +314,7 @@ void Game::InitLighting()
 	dir3= {};
 	dir3.Type = LIGHT_TYPE_DIRECTIONAL;
 	dir3.Direction = DirectX::XMFLOAT3(0.1, -1, 0.2);
-	dir3.Color = DirectX::XMFLOAT3(0.153, 0.75, 0.135);
+	dir3.Color = DirectX::XMFLOAT3(0.753, 0.02, 0.135);
 	dir3.Intensity = 1.0f;
 
 	// Point Light 1
@@ -268,7 +322,7 @@ void Game::InitLighting()
 	pl1.Type = LIGHT_TYPE_POINT;
 	pl1.Position = DirectX::XMFLOAT3(0.1, -1, 0.2);
 	pl1.Range = 4.6f;
-	pl1.Color = DirectX::XMFLOAT3(0.9, 0.75, 0.135);
+	pl1.Color = DirectX::XMFLOAT3(0.9, 0.85, 0.935);
 	pl1.Intensity = 1.0f;
 
 	// Point Light 2
@@ -276,7 +330,7 @@ void Game::InitLighting()
 	pl2.Type = LIGHT_TYPE_POINT;
 	pl2.Position = DirectX::XMFLOAT3(0.9, -1.6, 4.0);
 	pl2.Range = 15.0f;
-	pl2.Color = DirectX::XMFLOAT3(0.4, 0.85, 0.35);
+	pl2.Color = DirectX::XMFLOAT3(0.4, 0.85, 0.85);
 	pl2.Intensity = 1.0f;
 }
 

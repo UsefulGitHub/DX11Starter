@@ -55,10 +55,21 @@ float Attenuate(Light light, float3 worldPos)
 	return att * att;
 }
 
-// Call this on each directional light to get its effects on the lighting as a whole
-float3 AddDirectionalLight(
+// Call this on each directional light
+float3 AddDirLightDiffuse(
 	Light light,
 	float3 normal,
+	float4 colorTint
+)
+{
+	return Diffuse(normal, NormDirToDirLight(light))
+		* light.Color
+		* (float3)colorTint;
+}
+
+// Call this on each directional light
+float3 AddDirLightSpecular(
+	Light light,
 	float4 colorTint,
 	float3 reflection,
 	float3 view,
@@ -66,15 +77,30 @@ float3 AddDirectionalLight(
 )
 {
 	return Specular(reflection, view, specExponent)
-		+ Diffuse(normal, NormDirToDirLight(light))
 		* light.Color
 		* (float3)colorTint;
 }
 
-// Call this on each point light to get its effects on the lighting as a whole
-float3 AddPointLight(
+// Call this on each point light
+float3 AddPointLightDiffuse(
 	Light light,
 	float3 normal,
+	float4 colorTint,
+	float3 worldPos
+)
+{
+	return Attenuate(light, worldPos) * // Multiply the light calculated below by its attenuation
+		(
+			// Effectively the directional light equation below here
+			Diffuse(normal, NormDirToPointLight(light, worldPos))
+			* light.Color
+			* (float3)colorTint
+		);
+}
+
+// Call this on each point light
+float3 AddPointLightSpecular(
+	Light light,
 	float4 colorTint,
 	float3 reflection,
 	float3 view,
@@ -86,7 +112,6 @@ float3 AddPointLight(
 		(
 			// Effectively the directional light equation below here
 			Specular(reflection, view, specExponent)
-			+ Diffuse(normal, NormDirToPointLight(light, worldPos))
 			* light.Color
 			* (float3)colorTint
 		);

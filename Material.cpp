@@ -64,6 +64,15 @@ void Material::PrepareMaterial()
 {
     vs->SetShader();
     ps->SetShader();
+    // Assigning SRVs and sampler state to the pixel shader in a loop, because there can be more than one.
+    for (auto& t : textureSRVs)
+    {
+        ps->SetShaderResourceView(t.first.c_str(), t.second);
+    }
+    for (auto& s : textureSamplers)
+    {
+        ps->SetSamplerState(s.first.c_str(), s.second);
+    }
 }
 
 void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)

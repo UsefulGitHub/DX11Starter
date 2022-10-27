@@ -35,8 +35,7 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders(); 
-	void LoadTextures();
-	void CreateMaterials();
+	void LoadTexturesAndCreateMaterials();
 	void CreateGeometry();
 	void CreateRenderables();
 	void SetupTransforms();
@@ -86,5 +85,10 @@ private:
 	Light dir3;
 	Light pl1;
 	Light pl2;
+
+	// Sky Stuff (From Class 10/27)
+	std::shared_ptr<Mesh> skyMesh;
+	std::shared_ptr<SimplePixelShader> skyPS;
+	std::shared_ptr<SimpleVertexShader> skyVS;
 };
 

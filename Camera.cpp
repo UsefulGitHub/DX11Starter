@@ -52,7 +52,7 @@ void Camera::Update(float deltaTime)
     }
 
     if (input.KeyDown('X')) {
-        transform.MoveAbsolute(0, movementSpeed * deltaTime, 0);
+        transform.MoveAbsolute(0, -1 * movementSpeed * deltaTime, 0);
     }
 
     // Mouse input!
