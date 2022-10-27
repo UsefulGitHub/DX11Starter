@@ -96,6 +96,7 @@ void Game::Init()
 
 	// Loads the shaders, then creates our materials
 	LoadShaders();
+	LoadTextures();
 	CreateMaterials();
 	CreateGeometry();
 	CreateRenderables();
@@ -128,6 +129,33 @@ void Game::LoadShaders()
 		ps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"PixelShader.cso").c_str());
 		fps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"FancyPixelShader.cso").c_str());
 	}
+}
+
+// --------------------------------------------------------
+// Loads textures with the CreateWICTextureFromFile() function
+// --------------------------------------------------------
+void Game::LoadTextures()
+{
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_albedo.tif").c_str(),
+		nullptr,
+		dirtSRV.GetAddressOf()
+	);
+	
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> dirtSamplerState;
+	
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.MaxAnisotropy = 8;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sampDesc, dirtSamplerState.GetAddressOf());
 }
 
 // --------------------------------------------------------

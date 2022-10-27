@@ -12,6 +12,7 @@
 #include "SimpleShader.h"
 #include "Material.h"
 #include "Light.h"
+#include "WICTextureLoader.h"
 // Not including the ImGui headers here because they are in DXCore.h,
 // which this includes and inherits from <3.
 
@@ -34,6 +35,7 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders(); 
+	void LoadTextures();
 	void CreateMaterials();
 	void CreateGeometry();
 	void CreateRenderables();

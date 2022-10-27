@@ -65,3 +65,13 @@ void Material::PrepareMaterial()
     vs->SetShader();
     ps->SetShader();
 }
+
+void Material::AddTextureSRV(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv)
+{
+    textureSRVs.insert({ shaderName, srv });
+}
+
+void Material::AddTextureSampler(std::string shaderName, Microsoft::WRL::ComPtr<ID3D11SamplerState> sampState)
+{
+    textureSamplers.insert({ shaderName, sampState });
+}
