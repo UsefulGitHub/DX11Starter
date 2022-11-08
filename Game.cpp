@@ -36,7 +36,7 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	// Initialize all the member variables to appease C++
 	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-	firstLight = {};
+	dir1 = {};
 	dir2 = {};
 	dir3 = {};
 	pl1 = {};
@@ -127,6 +127,8 @@ void Game::LoadShaders()
 		vs = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"VertexShader.cso").c_str());
 		ps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"PixelShader.cso").c_str());
 		fps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"FancyPixelShader.cso").c_str());
+		skyVS = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"SkyVertexShader.cso").c_str());
+		skyPS = std::make_shared<SimplePixelShader>(device, context, FixPath(L"SkyPixelShader.cso").c_str());
 	}
 }
 
@@ -167,6 +169,15 @@ void Game::LoadTexturesAndCreateMaterials()
 		dirtSpecSRV.GetAddressOf()
 	);
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtNormSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_normal.tif").c_str(),
+		nullptr,
+		dirtNormSRV.GetAddressOf()
+	);
+
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
@@ -183,6 +194,15 @@ void Game::LoadTexturesAndCreateMaterials()
 		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_roughness.tif").c_str(),
 		nullptr,
 		mossSpecSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossNormSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_normal.tif").c_str(),
+		nullptr,
+		mossNormSRV.GetAddressOf()
 	);
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkSRV;
@@ -203,23 +223,69 @@ void Game::LoadTexturesAndCreateMaterials()
 		barkSpecSRV.GetAddressOf()
 	);
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkNormSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_normal.tif").c_str(),
+		nullptr,
+		barkNormSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_albedo.tif").c_str(),
+		nullptr,
+		tileSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSpecSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_roughness.tif").c_str(),
+		nullptr,
+		tileSpecSRV.GetAddressOf()
+	);
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileNormSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_normal.tif").c_str(),
+		nullptr,
+		tileNormSRV.GetAddressOf()
+	);
+
 	// Create materials
-	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.9f, 1.0f, 1.0f), 0.06f, vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(0.8f, 0.9f, 0.1f, 1.0f), 0.02f, vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.82f, 0.9f, 1.0f), 0.05f, vs, ps);
+	// High roughness is a matte surface, low roughness is shiny
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
+	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
+	mat4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
 
 	// Assign textures to materials
 	mat1->AddTextureSampler("BasicSampler", sampState);
 	mat1->AddTextureSRV("SurfaceTexture", dirtSRV);
 	mat1->AddTextureSRV("SpecularTexture", dirtSpecSRV);
+	mat1->AddTextureSRV("NormalTexture", dirtNormSRV);
 
 	mat2->AddTextureSampler("BasicSampler", sampState);
 	mat2->AddTextureSRV("SurfaceTexture", mossSRV);
 	mat2->AddTextureSRV("SpecularTexture", mossSpecSRV);
+	mat2->AddTextureSRV("NormalTexture", mossNormSRV);
 
 	mat3->AddTextureSampler("BasicSampler", sampState);
 	mat3->AddTextureSRV("SurfaceTexture", barkSRV);
 	mat3->AddTextureSRV("SpecularTexture", barkSpecSRV);
+	mat3->AddTextureSRV("NormalTexture", barkNormSRV);
+
+	mat4->AddTextureSampler("BasicSampler", sampState);
+	mat4->AddTextureSRV("SurfaceTexture", tileSRV);
+	mat4->AddTextureSRV("SpecularTexture", tileSpecSRV);
+	mat4->AddTextureSRV("NormalTexture", tileNormSRV);
 }
 
 // --------------------------------------------------------
@@ -242,6 +308,34 @@ void Game::CreateGeometry()
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), device, context));
 	// At position 6: the torus
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), device, context));
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> skySampState;
+
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	sampDesc.MaxAnisotropy = 8;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sampDesc, skySampState.GetAddressOf());
+
+	// Now that the meshes are loaded in we can create the sky-
+	sky = std::make_shared<Sky>(
+		device.Get(),
+		context.Get(),
+		meshes[0], // Skybox is a cube
+		skyVS,
+		skyPS,
+		skySampState.Get(),
+		FixPath(L"../../Assets/Textures/Sky/right.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/left.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/up.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/down.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/front.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/back.png").c_str()
+		);
 }
 
 // --------------------------------------------------------
@@ -251,9 +345,9 @@ void Game::CreateGeometry()
 void Game::CreateRenderables()
 {
 	// At position 0: the cube
-	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat1));
+	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat4));
 	// At position 1: the cylinder
-	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat2));
+	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat4));
 	// At position 2: the helix
 	renderables.push_back(std::make_shared<Renderable>(meshes[2], mat3));
 	// At position 3: the quad
@@ -263,7 +357,7 @@ void Game::CreateRenderables()
 	// At position 5: the sphere
 	renderables.push_back(std::make_shared<Renderable>(meshes[5], mat3));
 	// At position 6: the torus
-	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat1));
+	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat4));
 }
 
 // --------------------------------------------------------
@@ -294,43 +388,43 @@ void Game::SetupTransforms()
 // --------------------------------------------------------
 void Game::InitLighting()
 {
-	ambientLight = DirectX::XMFLOAT3(0.05f, 0.15f, 0.24f);
+	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.24f);
 	
 	// Directional Light 1
-	firstLight = {};
-	firstLight.Type = LIGHT_TYPE_DIRECTIONAL;
-	firstLight.Direction = DirectX::XMFLOAT3(1, 0.5, 0.2);
-	firstLight.Color = DirectX::XMFLOAT3(0.53, 0.05, 0.35);
-	firstLight.Intensity = 1.0f;
+	dir1 = {};
+	dir1.Type = LIGHT_TYPE_DIRECTIONAL;
+	dir1.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+	dir1.Color = DirectX::XMFLOAT3(0.13f, 0.05f, 0.65f);
+	dir1.Intensity = 1.0f;
 
 	// Directional Light 2
 	dir2= {};
 	dir2.Type = LIGHT_TYPE_DIRECTIONAL;
-	dir2.Direction = DirectX::XMFLOAT3(0.2, 0.2, 0.2);
-	dir2.Color = DirectX::XMFLOAT3(0.9, 0.22, 0.8);
+	dir2.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+	dir2.Color = DirectX::XMFLOAT3(0.0f, 0.8f, 0.2f);
 	dir2.Intensity = 1.0f;
 
 	// Directional Light 3
 	dir3= {};
 	dir3.Type = LIGHT_TYPE_DIRECTIONAL;
-	dir3.Direction = DirectX::XMFLOAT3(0.1, -1, 0.2);
-	dir3.Color = DirectX::XMFLOAT3(0.753, 0.02, 0.135);
+	dir3.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
+	dir3.Color = DirectX::XMFLOAT3(0.8f, 0.02f, 0.13f);
 	dir3.Intensity = 1.0f;
 
 	// Point Light 1
 	pl1 = {};
 	pl1.Type = LIGHT_TYPE_POINT;
 	pl1.Position = DirectX::XMFLOAT3(0.1, -1, 0.2);
-	pl1.Range = 4.6f;
-	pl1.Color = DirectX::XMFLOAT3(0.9, 0.85, 0.935);
+	pl1.Range = 18.0f;
+	pl1.Color = DirectX::XMFLOAT3(0.87f, 0.95f, 0.935f);
 	pl1.Intensity = 1.0f;
 
 	// Point Light 2
 	pl2 = {};
 	pl2.Type = LIGHT_TYPE_POINT;
 	pl2.Position = DirectX::XMFLOAT3(0.9, -1.6, 4.0);
-	pl2.Range = 15.0f;
-	pl2.Color = DirectX::XMFLOAT3(0.4, 0.85, 0.85);
+	pl2.Range = 45.0f;
+	pl2.Color = DirectX::XMFLOAT3(0.954f, 0.85f, 1.0);
 	pl2.Intensity = 1.0f;
 }
 
@@ -407,14 +501,18 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 
 	ImGui::Begin("Light Editor");
 	ImGui::Text("Point Light Positions");
-	ImGui::SliderFloat3("Point Light 1", &pl1.Position.x, -10.0f, 10.0f);
-	ImGui::SliderFloat3("Point Light 2", &pl2.Position.x, -10.0f, 10.0f);
-	ImGui::Text("Point Light Colors"); // These just control the position right now- why is that?
-	ImGui::SliderFloat3("Point Light 1", &pl1.Color.x, 0.0f, 1.0f);
-	ImGui::SliderFloat3("Point Light 2", &pl2.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("Point Light Position 1", &pl1.Position.x, -10.0f, 10.0f);
+	ImGui::SliderFloat3("Point Light Position 2", &pl2.Position.x, -10.0f, 10.0f);
+	ImGui::Text("Point Light Colors");
+	ImGui::SliderFloat3("Point Light Color 1", &pl1.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("Point Light Color 2", &pl2.Color.x, 0.0f, 1.0f);
 	ImGui::Text("Point Light Ranges");
-	ImGui::SliderFloat("Point Light 1", &pl1.Range, 0.0f, 20.0f);
-	ImGui::SliderFloat("Point Light 2", &pl2.Range, 0.0f, 20.0f);
+	ImGui::SliderFloat("Point Light 1", &pl1.Range, 0.0f, 100.0f);
+	ImGui::SliderFloat("Point Light 2", &pl2.Range, 0.0f, 100.0f);
+	ImGui::Text("Directional Light Colors");
+	ImGui::SliderFloat3("Directional Light Color 1", &dir1.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("Directional Light Color 2", &dir2.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat3("Directional Light Color 3", &dir3.Color.x, 0.0f, 1.0f);
 	ImGui::End();
 }
 
@@ -444,6 +542,11 @@ void Game::Update(float deltaTime, float totalTime)
 
 	// Update the camera :)
 	camera->Update(deltaTime);
+
+	for (int i = 0; i < renderables.size(); i++)
+	{
+		renderables[i]->GetTransform()->Rotate(0.0f, deltaTime * 0.1f, 0.0f);
+	}
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -478,7 +581,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		// They also get the directional light
 		renderables[i]->GetMaterial()->GetPS()->SetData(
 			"directionalLight1",
-			&firstLight,
+			&dir1,
 			sizeof(Light)
 		);
 		renderables[i]->GetMaterial()->GetPS()->SetData(
@@ -503,6 +606,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		);
 		renderables[i]->Draw(context, camera, totalTime);
 	}
+
+	sky->Draw(context, camera);
 
 	// The GUI should be the LAST thing drawn before ending the frame!
 	// Draw ImGui

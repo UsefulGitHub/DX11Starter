@@ -15,23 +15,6 @@ cbuffer ExternalData : register(b0) // b0 means the first buffer register
 	matrix worldInvTrans;
 }
 
-// Struct representing a single vertex worth of data
-// - This should match the vertex definition in our C++ code
-// - By "match", I mean the size, order and number of members
-// - The name of the struct itself is unimportant, but should be descriptive
-// - Each variable must have a semantic, which defines its usage
-struct VertexShaderInput
-{ 
-	// Data type
-	//  |
-	//  |   Name          Semantic
-	//  |    |                |
-	//  v    v                v
-	float3 localPosition	: POSITION;     // XYZ position
-	float2 uv				: TEXCOORD;     // UV position
-	float3 normal			: NORMAL;		// Normal
-};
-
 // --------------------------------------------------------
 // The entry point (main method) for our vertex shader
 // 
@@ -60,6 +43,7 @@ VertexToPixel main( VertexShaderInput input )
 	output.uv = input.uv; // The uvs are just passing through here
 	output.normal = mul((float3x3)worldInvTrans, input.normal);
 	output.worldPosition = mul(world, float4(input.localPosition, 1.0f)).xyz;
+	output.tangent = mul((float3x3)world, input.tangent);
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

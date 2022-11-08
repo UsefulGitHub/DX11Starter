@@ -13,6 +13,7 @@
 #include "Material.h"
 #include "Light.h"
 #include "WICTextureLoader.h"
+#include "Sky.h"
 // Not including the ImGui headers here because they are in DXCore.h,
 // which this includes and inherits from <3.
 
@@ -58,9 +59,14 @@ private:
 	std::shared_ptr<SimpleVertexShader> vs;
 	std::shared_ptr<SimplePixelShader> ps;
 	std::shared_ptr<SimplePixelShader> fps;
+	std::shared_ptr<SimpleVertexShader> skyVS;
+	std::shared_ptr<SimplePixelShader> skyPS;
 
 	// Camera (The)
 	std::shared_ptr<Camera> camera;
+	
+	// Sky (The)
+	std::shared_ptr<Sky> sky;
 
 	// Meshes
 	std::vector<std::shared_ptr<Mesh>> meshes;
@@ -70,6 +76,7 @@ private:
 	std::shared_ptr<Material> mat1;
 	std::shared_ptr<Material> mat2;
 	std::shared_ptr<Material> mat3;
+	std::shared_ptr<Material> mat4;
 
 	// Renderables
 	std::vector<std::shared_ptr<Renderable>> renderables;
@@ -80,15 +87,10 @@ private:
 
 	// Lighting
 	DirectX::XMFLOAT3 ambientLight;
-	Light firstLight;
+	Light dir1;
 	Light dir2;
 	Light dir3;
 	Light pl1;
 	Light pl2;
-
-	// Sky Stuff (From Class 10/27)
-	std::shared_ptr<Mesh> skyMesh;
-	std::shared_ptr<SimplePixelShader> skyPS;
-	std::shared_ptr<SimpleVertexShader> skyVS;
 };
 
