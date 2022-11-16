@@ -129,6 +129,7 @@ void Game::LoadShaders()
 		fps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"FancyPixelShader.cso").c_str());
 		skyVS = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"SkyVertexShader.cso").c_str());
 		skyPS = std::make_shared<SimplePixelShader>(device, context, FixPath(L"SkyPixelShader.cso").c_str());
+		shadowVS = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"ShadowVS.cso").c_str());
 	}
 }
 
@@ -382,6 +383,92 @@ void Game::SetupTransforms()
 	transforms[6]->SetPosition(9.0, 0.0, 0.0);
 }
 
+void Game::CreateShadowMapResources()
+{
+	// Create shadow requirements ------------------------------------------
+	shadowMapResolution = 1024;
+	shadowProjectionSize = 10.0f;
+
+	// Create the actual texture that will be the shadow map
+	D3D11_TEXTURE2D_DESC shadowDesc = {};
+	shadowDesc.Width = shadowMapResolution;
+	shadowDesc.Height = shadowMapResolution;
+	shadowDesc.ArraySize = 1;
+	shadowDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowDesc.CPUAccessFlags = 0;
+	shadowDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowDesc.MipLevels = 1;
+	shadowDesc.MiscFlags = 0;
+	shadowDesc.SampleDesc.Count = 1;
+	shadowDesc.SampleDesc.Quality = 0;
+	shadowDesc.Usage = D3D11_USAGE_DEFAULT;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> shadowTexture;
+	device->CreateTexture2D(&shadowDesc, 0, shadowTexture.GetAddressOf());
+
+	// Create the depth/stencil
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDSDesc = {};
+	shadowDSDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowDSDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowDSDesc.Texture2D.MipSlice = 0;
+	device->CreateDepthStencilView(shadowTexture.Get(), &shadowDSDesc, shadowDSV.GetAddressOf());
+
+	// Create the SRV for the shadow map
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(shadowTexture.Get(), &srvDesc, shadowSRV.GetAddressOf());
+
+	// Create the special "comparison" sampler state for shadows
+	D3D11_SAMPLER_DESC shadowSampDesc = {};
+	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR; // COMPARISON filter!
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.BorderColor[0] = 1.0f;
+	shadowSampDesc.BorderColor[1] = 1.0f;
+	shadowSampDesc.BorderColor[2] = 1.0f;
+	shadowSampDesc.BorderColor[3] = 1.0f;
+	device->CreateSamplerState(&shadowSampDesc, &shadowSampler);
+
+	// Create a rasterizer state
+	D3D11_RASTERIZER_DESC shadowRastDesc = {};
+	shadowRastDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRastDesc.CullMode = D3D11_CULL_BACK;
+	shadowRastDesc.DepthClipEnable = true;
+	shadowRastDesc.DepthBias = 1000; // Multiplied by (smallest possible positive value storable in the depth buffer)
+	shadowRastDesc.DepthBiasClamp = 0.0f;
+	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
+	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
+
+	// Create the "camera" matrices for the shadow map rendering
+
+	// View
+	XMMATRIX shView = XMMatrixLookAtLH(
+		XMVectorSet(0, 20, -20, 0),
+		XMVectorSet(0, 0, 0, 0),
+		XMVectorSet(0, 1, 0, 0));
+	XMStoreFloat4x4(&shadowViewMatrix, shView);
+
+	// Projection - we want ORTHOGRAPHIC for directional light shadows
+	// NOTE: This particular projection is set up to be SMALLER than
+	// the overall "scene", to show what happens when objects go
+	// outside the shadow area.  In a game, you'd never want the
+	// user to see this edge, but I'm specifically making the projection
+	// small in this demo to show you that it CAN happen.
+	//
+	// Ideally, the first two parameters below would be adjusted to
+	// fit the scene (or however much of the scene the user can see
+	// at a time).  More advanced techniques, like cascaded shadow maps,
+	// would use multiple (usually 4) shadow maps with increasingly larger
+	// projections to ensure large open world games have shadows "everywhere"
+	XMMATRIX shProj = XMMatrixOrthographicLH(shadowProjectionSize, shadowProjectionSize, 0.1f, 100.0f);
+	XMStoreFloat4x4(&shadowProjectionMatrix, shProj);
+
+}
+
 // --------------------------------------------------------
 // Makes the light objects and sets ambient light values
 // - Also gives the space to adjust colors/transforms before the game starts
@@ -426,6 +513,46 @@ void Game::InitLighting()
 	pl2.Range = 45.0f;
 	pl2.Color = DirectX::XMFLOAT3(0.954f, 0.85f, 1.0);
 	pl2.Intensity = 1.0f;
+}
+
+// --------------------------------------------------------
+// Renders the shadow map from the light's point of view
+// --------------------------------------------------------
+void Game::RenderShadowMap()
+{
+	// Initial pipeline setup - No RTV necessary - Clear shadow map
+	context->OMSetRenderTargets(0, 0, shadowDSV.Get());
+	context->ClearDepthStencilView(shadowDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->RSSetState(shadowRasterizer.Get());
+
+	// Set the shadow-specific vertex shader
+	shadowVS->SetShader();
+	shadowVS->SetMatrix4x4("view", shadowViewMatrix);
+	shadowVS->SetMatrix4x4("projection", shadowProjectionMatrix);
+	context->PSSetShader(0, 0, 0); // No pixel shader
+
+	// Need to create a viewport that matches the shadow map resolution
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	viewport.Width = (float)shadowMapResolution;
+	viewport.Height = (float)shadowMapResolution;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &viewport);
+
+	// Loop and draw all entities
+	for (auto& e : renderables)
+	{
+		shadowVS->SetMatrix4x4("world", e->GetTransform()->GetWorldMatrix());
+		shadowVS->CopyAllBufferData();
+
+		// Draw the mesh
+		e->GetMesh()->Draw();
+	}
+
+	// Put everything back
+	context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), depthBufferDSV.Get());
 }
 
 // -dir3-------------------------------------------------------

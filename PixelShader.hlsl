@@ -30,7 +30,7 @@ cbuffer externalData		: register(b0) // b0 means the first buffer register
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Get the color at this pixel's uv position
-	float4 surfaceColor = float4(SurfaceTexture.Sample(BasicSampler, input.uv).rgb, 1.0f);
+	float4 surfaceColor = float4(pow(SurfaceTexture.Sample(BasicSampler, input.uv).rgb, 2.2f), 1.0f);
 	float surfaceSpecular = SpecularTexture.Sample(BasicSampler, input.uv).r;
 	float3 surfaceNormalUnpacked = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
 
@@ -69,5 +69,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-	return float4(returnedLight, 1.0f);
+	return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
 }

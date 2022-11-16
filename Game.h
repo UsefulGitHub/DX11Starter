@@ -40,7 +40,11 @@ private:
 	void CreateGeometry();
 	void CreateRenderables();
 	void SetupTransforms();
+	void CreateShadowMapResources();
 	void InitLighting();
+
+	// Other helper methods
+	void RenderShadowMap();
 
 	// ImGui helper methods
 	ImGuiIO PrepImGui(float deltaTime);
@@ -92,5 +96,16 @@ private:
 	Light dir3;
 	Light pl1;
 	Light pl2;
+
+	// Shadows
+	int shadowMapResolution;
+	float shadowProjectionSize;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> shadowDSV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shadowSRV;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
+	std::shared_ptr<SimpleVertexShader> shadowVS;
 };
 
