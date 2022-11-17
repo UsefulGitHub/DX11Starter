@@ -1,10 +1,15 @@
 #include "structs.hlsli"
 #include "LightHeader.hlsli"
+#include "TextureFunctions.hlsli"
 
-Texture2D SurfaceTexture	: register(t0); // "t" registers for textures
-Texture2D SpecularTexture	: register(t1); // same
-Texture2D NormalTexture		: register(t2);
+// The texture set
+Texture2D AlbedoMap			: register(t0); // "t" registers for textures
+Texture2D NormalMap			: register(t1); // same
+Texture2D RoughnessMap		: register(t2);
+Texture2D MetalnessMap		: register(t3);
 SamplerState BasicSampler	: register(s0);	// "s" registers for samplers
+
+// Big External Data cbuffer
 cbuffer externalData		: register(b0) // b0 means the first buffer register
 {
 	float4 colorTint;
@@ -30,27 +35,14 @@ cbuffer externalData		: register(b0) // b0 means the first buffer register
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Get the color at this pixel's uv position
-	float4 surfaceColor = float4(pow(SurfaceTexture.Sample(BasicSampler, input.uv).rgb, 2.2f), 1.0f);
-	float surfaceSpecular = SpecularTexture.Sample(BasicSampler, input.uv).r;
-	float3 surfaceNormalUnpacked = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+	float4 surfaceColor = SampleAlbedo(AlbedoMap, BasicSampler, input.uv);
+	
+	// Get the normals and the TBN, then correct the normals for this position
+	float3 normal = SampleNormal(NormalMap, BasicSampler, input.uv, input.normal, input.tangent);
 
-	// Feel free to adjust/simplify this code to fit with your existing shader(s)
-	// Simplifications include not re-normalizing the same vector more than once!
-	float3 N = normalize(input.normal); // Must be normalized here or before
-	float3 T = normalize(input.tangent); // Must be normalized here or before
-	T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
-	float3 B = cross(T, N);
-	float3x3 TBN = float3x3(T, B, N);
-
-	// Assumes that input.normal is the normal later in the shader
-	float3 normal = mul(surfaceNormalUnpacked, TBN); // Note multiplication order!
-
-	// Uncomment to ignore normal maps for testing
-	// normal = normalize(input.normal);
-
-	// Call the lighting math functions
+	// Get the normalized view for specular lights
 	float3 view = normalize(cameraPosition - input.worldPosition);
-	float specExponent = SpecExponent(surfaceSpecular);
+	
 	// Add light toghether
 	float3 returnedLight =
 		AddDirLightDiffuse(directionalLight1, normal, surfaceColor * colorTint) +

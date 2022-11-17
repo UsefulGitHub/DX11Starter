@@ -173,9 +173,9 @@
     <None Include="LightHeader.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="packages.config" />
     <None Include="TextureFunctions.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
 </Project>
