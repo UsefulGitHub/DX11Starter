@@ -13,9 +13,7 @@ SamplerState BasicSampler	: register(s0);	// "s" registers for samplers
 cbuffer externalData		: register(b0) // b0 means the first buffer register
 {
 	float4 colorTint;
-	float roughness;
 	float3 cameraPosition;
-	float3 ambientLight;
 	Light directionalLight1;
 	Light directionalLight2;
 	Light directionalLight3;
@@ -38,24 +36,26 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 surfaceColor = SampleAlbedo(AlbedoMap, BasicSampler, input.uv);
 	
 	// Get the normals and the TBN, then correct the normals for this position
+	// SampleNormal does the TBN inside :)
 	float3 normal = SampleNormal(NormalMap, BasicSampler, input.uv, input.normal, input.tangent);
 
-	// Get the normalized view for specular lights
+	// Get the metalness and roughness data
+	float roughness = SampleMetalnessRoughness(RoughnessMap, BasicSampler, input.uv);
+	float metalness = SampleMetalnessRoughness(MetalnessMap, BasicSampler, input.uv);
+
+	// Get the normalized view for specular highlights
 	float3 view = normalize(cameraPosition - input.worldPosition);
 	
+	// Get the specular color for all the specular lights to use
+	float3 specColor = GetSpecularColor(surfaceColor, metalness);
+
 	// Add light toghether
 	float3 returnedLight =
-		AddDirLightDiffuse(directionalLight1, normal, surfaceColor * colorTint) +
-		(AddDirLightSpecular(directionalLight1, surfaceColor * colorTint, reflect(NormDirToDirLight(directionalLight1), normal), view, specExponent)) +
-		AddDirLightDiffuse(directionalLight2, normal, surfaceColor * colorTint) +
-		(AddDirLightSpecular(directionalLight2, surfaceColor * colorTint, reflect(NormDirToDirLight(directionalLight2), normal), view, specExponent)) +
-		AddDirLightDiffuse(directionalLight3, normal, surfaceColor * colorTint) +
-		(AddDirLightSpecular(directionalLight3, surfaceColor * colorTint, reflect(NormDirToDirLight(directionalLight3), normal), view, specExponent)) +
-		AddPointLightDiffuse(pointLight1, normal, surfaceColor * colorTint, input.worldPosition) +
-		(AddPointLightSpecular(pointLight1, surfaceColor * colorTint, reflect(NormDirToPointLight(pointLight1, input.worldPosition), normal), view, specExponent, input.worldPosition)) +
-		AddPointLightDiffuse(pointLight2, normal, surfaceColor * colorTint, input.worldPosition) +
-		(AddPointLightSpecular(pointLight2, surfaceColor * colorTint, reflect(NormDirToPointLight(pointLight2, input.worldPosition), normal), view, specExponent, input.worldPosition)) +
-		((float3)(surfaceColor * colorTint) * ambientLight);
+		DirectionalLight(directionalLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+		DirectionalLight(directionalLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+		DirectionalLight(directionalLight3, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+		PointLight(pointLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition) +
+		PointLight(pointLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition);
 
 	// Just return the input color
 	// - This color (like most values passing through the rasterizer) is 

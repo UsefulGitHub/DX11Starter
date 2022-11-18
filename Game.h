@@ -79,8 +79,8 @@ private:
 	std::vector<std::shared_ptr<Material>> materials;
 	std::shared_ptr<Material> mat1;
 	std::shared_ptr<Material> mat2;
-	std::shared_ptr<Material> mat3;
-	std::shared_ptr<Material> mat4;
+	//std::shared_ptr<Material> mat3;
+	//std::shared_ptr<Material> mat4;
 
 	// Renderables
 	std::vector<std::shared_ptr<Renderable>> renderables;

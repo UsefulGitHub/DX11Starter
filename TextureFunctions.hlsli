@@ -6,6 +6,18 @@
 // http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf
 static const float F0_NON_METAL = 0.04f;
 
+float3x3 GetTBN(float3 normal, float3 tangent)
+{
+	// Feel free to adjust/simplify this code to fit with your existing shader(s)
+	// Simplifications include not re-normalizing the same vector more than once
+	float3 N = normalize(normal); // Must be normalized here or before
+	float3 T = normalize(tangent); // Must be normalized here or before
+	T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+	return TBN;
+}
+
 float4 SampleAlbedo(Texture2D map, SamplerState samp, float2 uv)
 {
 	return float4(pow(map.Sample(samp, uv).rgb, 2.2f), 1.0f);
@@ -20,18 +32,6 @@ float3 SampleNormal(Texture2D map, SamplerState samp, float2 uv, float3 normal, 
 
 float SampleMetalnessRoughness(Texture2D map, SamplerState samp, float2 uv) {
 	return map.Sample(samp, uv).r;
-}
-
-float3x3 GetTBN(float3 normal, float3 tangent)
-{
-	// Feel free to adjust/simplify this code to fit with your existing shader(s)
-	// Simplifications include not re-normalizing the same vector more than once
-	float3 N = normalize(normal); // Must be normalized here or before
-	float3 T = normalize(tangent); // Must be normalized here or before
-	T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
-	float3 B = cross(T, N);
-	float3x3 TBN = float3x3(T, B, N);
-	return TBN;
 }
 
 float3 GetSpecularColor(float4 albedoColor, float metalness)

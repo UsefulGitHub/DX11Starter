@@ -152,141 +152,100 @@ void Game::LoadTexturesAndCreateMaterials()
 	device->CreateSamplerState(&sampDesc, sampState.GetAddressOf());
 
 	// Load textures
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSRV;
+
+#pragma region Cobblestone
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleAlbedoSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_albedo.tif").c_str(),
+		FixPath(L"../../Assets/Textures/cobblestone_albedo.png").c_str(),
 		nullptr,
-		dirtSRV.GetAddressOf()
-	);
-	
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtSpecSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_roughness.tif").c_str(),
-		nullptr,
-		dirtSpecSRV.GetAddressOf()
+		cobbleAlbedoSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> dirtNormSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleNormalSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_FarmlandDry2_3.2x3.2_1K_normal.tif").c_str(),
+		FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(),
 		nullptr,
-		dirtNormSRV.GetAddressOf()
+		cobbleNormalSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleRoughnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_albedo.tif").c_str(),
+		FixPath(L"../../Assets/Textures/cobblestone_roughness.png").c_str(),
 		nullptr,
-		mossSRV.GetAddressOf()
+		cobbleRoughnessSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossSpecSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleMetalnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_roughness.tif").c_str(),
+		FixPath(L"../../Assets/Textures/cobblestone_metal.png").c_str(),
 		nullptr,
-		mossSpecSRV.GetAddressOf()
+		cobbleMetalnessSRV.GetAddressOf()
+	);
+#pragma endregion
+
+#pragma region Cobblestone
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchAlbedoSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/scratched_albedo.png").c_str(),
+		nullptr,
+		scratchAlbedoSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossNormSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchNormalSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Ground_ForestMoss02_1x1_512_normal.tif").c_str(),
+		FixPath(L"../../Assets/Textures/scratched_normals.png").c_str(),
 		nullptr,
-		mossNormSRV.GetAddressOf()
+		scratchNormalSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchRoughnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_albedo.tif").c_str(),
+		FixPath(L"../../Assets/Textures/scratched_roughness.png").c_str(),
 		nullptr,
-		barkSRV.GetAddressOf()
+		scratchRoughnessSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkSpecSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchMetalnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_roughness.tif").c_str(),
+		FixPath(L"../../Assets/Textures/scratched_metal.png").c_str(),
 		nullptr,
-		barkSpecSRV.GetAddressOf()
+		scratchMetalnessSRV.GetAddressOf()
 	);
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> barkNormSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Bark_Yucca_0.125x0.125_512_normal.tif").c_str(),
-		nullptr,
-		barkNormSRV.GetAddressOf()
-	);
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_albedo.tif").c_str(),
-		nullptr,
-		tileSRV.GetAddressOf()
-	);
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileSpecSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_roughness.tif").c_str(),
-		nullptr,
-		tileSpecSRV.GetAddressOf()
-	);
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> tileNormSRV;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/TexturesCom_Tiles_SidingSovietBlack_1.5x1.5_512_normal.tif").c_str(),
-		nullptr,
-		tileNormSRV.GetAddressOf()
-	);
+#pragma endregion
 
 	// Create materials
 	// High roughness is a matte surface, low roughness is shiny
-	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
-	mat3 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
-	mat4 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 0.1f, vs, ps);
+	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, ps);
+	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.7f, 0.7f, 1.0f), vs, ps);
 
 	// Assign textures to materials
+	mat1->AddTextureSRV("AlbedoMap",		cobbleAlbedoSRV);
+	mat1->AddTextureSRV("NormalMap",		cobbleNormalSRV);
+	mat1->AddTextureSRV("RoughnessMap",		cobbleRoughnessSRV);
+	mat1->AddTextureSRV("MetalnessMap",		cobbleMetalnessSRV);
 	mat1->AddTextureSampler("BasicSampler", sampState);
-	mat1->AddTextureSRV("SurfaceTexture", dirtSRV);
-	mat1->AddTextureSRV("SpecularTexture", dirtSpecSRV);
-	mat1->AddTextureSRV("NormalTexture", dirtNormSRV);
 
+	mat2->AddTextureSRV("AlbedoMap",		scratchAlbedoSRV);
+	mat2->AddTextureSRV("NormalMap",		scratchNormalSRV);
+	mat2->AddTextureSRV("RoughnessMap",		scratchRoughnessSRV);
+	mat2->AddTextureSRV("MetalnessMap",		scratchMetalnessSRV);
 	mat2->AddTextureSampler("BasicSampler", sampState);
-	mat2->AddTextureSRV("SurfaceTexture", mossSRV);
-	mat2->AddTextureSRV("SpecularTexture", mossSpecSRV);
-	mat2->AddTextureSRV("NormalTexture", mossNormSRV);
-
-	mat3->AddTextureSampler("BasicSampler", sampState);
-	mat3->AddTextureSRV("SurfaceTexture", barkSRV);
-	mat3->AddTextureSRV("SpecularTexture", barkSpecSRV);
-	mat3->AddTextureSRV("NormalTexture", barkNormSRV);
-
-	mat4->AddTextureSampler("BasicSampler", sampState);
-	mat4->AddTextureSRV("SurfaceTexture", tileSRV);
-	mat4->AddTextureSRV("SpecularTexture", tileSpecSRV);
-	mat4->AddTextureSRV("NormalTexture", tileNormSRV);
 }
 
 // --------------------------------------------------------
@@ -346,19 +305,19 @@ void Game::CreateGeometry()
 void Game::CreateRenderables()
 {
 	// At position 0: the cube
-	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat4));
+	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat1));
 	// At position 1: the cylinder
-	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat4));
+	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat2));
 	// At position 2: the helix
-	renderables.push_back(std::make_shared<Renderable>(meshes[2], mat3));
+	renderables.push_back(std::make_shared<Renderable>(meshes[2], mat1));
 	// At position 3: the quad
-	renderables.push_back(std::make_shared<Renderable>(meshes[3], mat1));
+	renderables.push_back(std::make_shared<Renderable>(meshes[3], mat2));
 	// At position 4: the double sided quad
-	renderables.push_back(std::make_shared<Renderable>(meshes[4], mat2));
+	renderables.push_back(std::make_shared<Renderable>(meshes[4], mat1));
 	// At position 5: the sphere
-	renderables.push_back(std::make_shared<Renderable>(meshes[5], mat3));
+	renderables.push_back(std::make_shared<Renderable>(meshes[5], mat2));
 	// At position 6: the torus
-	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat4));
+	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat1));
 }
 
 // --------------------------------------------------------

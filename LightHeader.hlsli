@@ -54,17 +54,6 @@ float3 DiffuseEnergyConserve(float3 diffuse, float3 specular, float metalness)
 	return diffuse * ((1 - saturate(specular)) * (1 - metalness));
 }
 
-// The Microfacet BRDF takes
-//	n - the normal after normal mapping
-//	l - normalized vector to the light (light vector)
-//	v - normalized vector to the camera (view vector)
-//	rougness - from the roughness map
-//	specColor - calculated from albedo and metalness
-float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float specColor)
-{
-	return (0, 0, 0);
-}
-
 // GGX (Trowbridge-Reitz)
 //
 // a - Roughness
@@ -81,7 +70,7 @@ float SpecDistribution(float3 n, float3 h, float roughness)
 	float a2 = max(a * a, MIN_ROUGHNESS); // Applied after remap!
 
 	// ((n dot h)^2 * (a^2 - 1) + 1)
-	float denomToSquare = NdotH2 * (a2 - 1) + 1;
+	float denomToSquare = NdotHSq * (a2 - 1) + 1;
 	// Can go to zero if roughness is 0 and NdotH is 1:
 	// MIN_ROUGHNESS helps here
 
@@ -123,18 +112,33 @@ float GeometricShadowing(float3 n, float3 v, float roughness)
 	return NdotV / (NdotV * (1 - k) + k);
 }
 
-float3 Specular(float3 reflection, float3 view, float specExponent)
+// The Microfacet BRDF takes
+//
+// 	n - the normal after normal mapping
+//	l - normalized vector to the light (light vector)
+//	flv - normalized vector to the camera (view vector)
+//	rougness - from the roughness map
+//	specColor - calculated from albedo and metalness
+//
+// f(l,v) = D(h)F(v,h)G(l,v,h) / 4(n dot l)(n dot v)
+// D is for Spec Distribution
+// F is for Fresnel
+// G is for Geometric Shadowing
+// Parts of the numerator cancel out parts of the denominator (see below)
+float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 specColor)
 {
-	if (specExponent > 0.05)
-	{
-		return pow(saturate(dot(reflection, view)), specExponent);
-	}
-	return float3(0.0f, 0.0f, 0.0f);
-}
+	// Other vectors
+	float3 h = normalize(v + 1);
 
-float SpecExponent(float roughness)
-{
-	return (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
+	// Grab various functions
+	float D = SpecDistribution(n, h, roughness);
+	float3 F = Fresnel(v, h, specColor);
+	float G = GeometricShadowing(n, v, roughness) * GeometricShadowing(n, l, roughness);
+
+	// Final f0rmula
+	// Den0m d0t products partially concelled by G()
+	// See page 16: http://blog.selfshadow.com/publications/s2012-shading-course/hoffman/s2012_pbs_physics_math_notes.pdf
+	return (D * F * G) / 4 * (max(dot(n, v), dot(n, l)));
 }
 
 float Attenuate(Light light, float3 worldPos)
@@ -144,66 +148,54 @@ float Attenuate(Light light, float3 worldPos)
 	return att * att;
 }
 
-// Call this on each directional light
-float3 AddDirLightDiffuse(
+float3 DirectionalLight(
 	Light light,
 	float3 normal,
-	float4 colorTint
+	float roughness,
+	float metalness,
+	float3 specColor,
+	float4 surfaceColor,
+	float4 colorTint,
+	float3 view
 )
 {
-	return Diffuse(normal, NormDirToDirLight(light))
-		* light.Color
-		* (float3)colorTint;
+	// Get the direction to the directional light
+	float3 toLight = NormDirToDirLight(light);
+
+	// Calculate the amounts of each type of light
+	float3 diff = Diffuse(normal, toLight);
+	float3 spec = MicrofacetBRDF(normal, toLight, view, roughness, specColor);
+
+	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
+
+	// Combine the final diffuse and specular values for this light
+	return (balancedDiff * ((float3)surfaceColor * (float3)colorTint) + spec) * light.Intensity * light.Color;
 }
 
-// Call this on each directional light
-float3 AddDirLightSpecular(
+float3 PointLight(
 	Light light,
+	float3 normal,
+	float roughness,
+	float metalness,
+	float3 specColor,
+	float4 surfaceColor,
 	float4 colorTint,
-	float3 reflection,
 	float3 view,
-	float specExponent
-)
-{
-	return Specular(reflection, view, specExponent)
-		* light.Color
-		* (float3)colorTint;
-}
-
-// Call this on each point light
-float3 AddPointLightDiffuse(
-	Light light,
-	float3 normal,
-	float4 colorTint,
 	float3 worldPos
 )
 {
-	return Attenuate(light, worldPos) * // Multiply the light calculated below by its attenuation
-		(
-			// Effectively the directional light equation below here
-			Diffuse(normal, NormDirToPointLight(light, worldPos))
-			* light.Color
-			* (float3)colorTint
-		);
-}
+	// Get the direction to the point light and calculate attenuation
+	float3 toLight = NormDirToPointLight(light, worldPos);
+	float attenuation = Attenuate(light, worldPos);
 
-// Call this on each point light
-float3 AddPointLightSpecular(
-	Light light,
-	float4 colorTint,
-	float3 reflection,
-	float3 view,
-	float3 specExponent,
-	float3 worldPos
-)
-{
-	return Attenuate(light, worldPos) * // Multiply the light calculated below by its attenuation
-		(
-			// Effectively the directional light equation below here
-			Specular(reflection, view, specExponent)
-			* light.Color
-			* (float3)colorTint
-		);
+	// Calculate the amounts of each type of light
+	float3 diff = Diffuse(normal, toLight);
+	float3 spec = MicrofacetBRDF(normal, toLight, view, roughness, specColor);
+
+	float3 balancedDiff = DiffuseEnergyConserve(diff, spec, metalness);
+
+	// Combine the final diffuse and specular values for this light
+	return ((balancedDiff * ((float3) surfaceColor * (float3)colorTint) + spec) * light.Intensity * light.Color) * attenuation;
 }
 
 #endif
