@@ -289,12 +289,12 @@ void Game::CreateGeometry()
 		skyVS,
 		skyPS,
 		skySampState.Get(),
-		FixPath(L"../../Assets/Textures/Sky/right.png").c_str(),
-		FixPath(L"../../Assets/Textures/Sky/left.png").c_str(),
-		FixPath(L"../../Assets/Textures/Sky/up.png").c_str(),
-		FixPath(L"../../Assets/Textures/Sky/down.png").c_str(),
-		FixPath(L"../../Assets/Textures/Sky/front.png").c_str(),
-		FixPath(L"../../Assets/Textures/Sky/back.png").c_str()
+		FixPath(L"../../Assets/Textures/Sky/corona_lf.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/corona_rt.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/corona_up.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/corona_dn.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/corona_ft.png").c_str(),
+		FixPath(L"../../Assets/Textures/Sky/corona_bk.png").c_str()
 		);
 }
 
