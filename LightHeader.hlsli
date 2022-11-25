@@ -128,7 +128,7 @@ float GeometricShadowing(float3 n, float3 v, float roughness)
 float3 MicrofacetBRDF(float3 n, float3 l, float3 v, float roughness, float3 specColor)
 {
 	// Other vectors
-	float3 h = normalize(v + 1);
+	float3 h = normalize(v + l);
 
 	// Grab various functions
 	float D = SpecDistribution(n, h, roughness);
