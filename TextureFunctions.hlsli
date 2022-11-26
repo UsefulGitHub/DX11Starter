@@ -30,7 +30,8 @@ float3 SampleNormal(Texture2D map, SamplerState samp, float2 uv, float3 normal, 
 	return mul(surfaceNormalUnpacked, TBN); // Note multiplication order!
 }
 
-float SampleMetalnessRoughness(Texture2D map, SamplerState samp, float2 uv) {
+float SampleMetalnessRoughness(Texture2D map, SamplerState samp, float2 uv)
+{
 	return map.Sample(samp, uv).r;
 }
 
@@ -43,5 +44,4 @@ float3 GetSpecularColor(float4 albedoColor, float metalness)
 	// because of linear texture sampling, so we lerp to accept the fuzzy answers
 	return lerp(F0_NON_METAL.rrr, albedoColor.rgb, metalness);
 }
-
 #endif

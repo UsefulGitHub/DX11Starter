@@ -3,10 +3,15 @@
 #include "TextureFunctions.hlsli"
 
 // The texture set
-Texture2D AlbedoMap			: register(t0); // "t" registers for textures
-Texture2D NormalMap			: register(t1); // same
-Texture2D RoughnessMap		: register(t2);
-Texture2D MetalnessMap		: register(t3);
+Texture2D AlbedoMap1			: register(t0); // "t" registers for textures
+Texture2D NormalMap1			: register(t1); // same
+Texture2D RoughnessMap1			: register(t2);
+Texture2D MetalnessMap1			: register(t3);
+Texture2D AlbedoMap2			: register(t4);
+Texture2D NormalMap2			: register(t5);
+Texture2D RoughnessMap2			: register(t6);
+Texture2D MetalnessMap2			: register(t7);
+Texture2D SplatMap				: register(t8);
 SamplerState BasicSampler	: register(s0);	// "s" registers for samplers
 
 // Big External Data cbuffer
@@ -32,16 +37,42 @@ cbuffer externalData		: register(b0) // b0 means the first buffer register
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// Get the color at this pixel's uv position
-	float4 surfaceColor = SampleAlbedo(AlbedoMap, BasicSampler, input.uv);
+	// Load texture 1
 	
+	// Get the color at this pixel's uv position
+	float4 surfaceColor1 = SampleAlbedo(AlbedoMap1, BasicSampler, input.uv);
+
 	// Get the normals and the TBN, then correct the normals for this position
 	// SampleNormal does the TBN inside :)
-	float3 normal = SampleNormal(NormalMap, BasicSampler, input.uv, input.normal, input.tangent);
+	float3 normal1 = SampleNormal(NormalMap1, BasicSampler, input.uv, input.normal, input.tangent);
 
 	// Get the metalness and roughness data
-	float roughness = SampleMetalnessRoughness(RoughnessMap, BasicSampler, input.uv);
-	float metalness = SampleMetalnessRoughness(MetalnessMap, BasicSampler, input.uv);
+	float roughness1 = SampleMetalnessRoughness(RoughnessMap1, BasicSampler, input.uv);
+	float metalness1 = SampleMetalnessRoughness(MetalnessMap1, BasicSampler, input.uv);
+	
+	// Load texture 2
+	float4 surfaceColor2 = SampleAlbedo(AlbedoMap2, BasicSampler, input.uv);
+
+	// Get the normals and the TBN, then correct the normals for this position
+	// SampleNormal does the TBN inside :)
+	float3 normal2 = SampleNormal(NormalMap2, BasicSampler, input.uv, input.normal, input.tangent);
+
+	// Get the metalness and roughness data
+	float roughness2 = SampleMetalnessRoughness(RoughnessMap2, BasicSampler, input.uv);
+	float metalness2 = SampleMetalnessRoughness(MetalnessMap2, BasicSampler, input.uv);
+
+	// Load splat map
+	float splat = SplatMap.Sample(BasicSampler, input.uv).r;
+
+	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, 1 - splat);
+	float3 normal = lerp(normal1, normal2, 1 - splat);
+	float roughness = lerp(roughness1, roughness2, 1 - splat);
+	float metalness = lerp(metalness1, metalness2, 1 - splat);
+	
+	//float4 surfaceColor = perlin(input.uv.x, input.uv.y);
+	//float3 normal = perlin(input.uv.x, input.uv.y);
+	//float roughness = perlin(input.uv.x, input.uv.y);
+	//float metalness = perlin(input.uv.x, input.uv.y);
 
 	// Get the normalized view for specular highlights
 	float3 view = normalize(cameraPosition - input.worldPosition);

@@ -1,9 +1,4 @@
 #include "Game.h"
-#include "Vertex.h"
-#include "Input.h"
-#include "Helpers.h"
-#include "Mesh.h"
-#include "Transform.h"
 
 // Did you know you can press ctrl twice in VS2022 to reveal inline hints? They are pretty useful.
 
@@ -86,7 +81,7 @@ void Game::Init()
 	// Create our camera
 	camera = std::make_shared<Camera>(
 		0.0f,
-		2.5f,
+		0.0f,
 		-15.0f,
 		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
 		XM_PIDIV4, // Pi divided by 4, 45 degrees
@@ -126,7 +121,6 @@ void Game::LoadShaders()
 	{
 		vs = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"VertexShader.cso").c_str());
 		ps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"PixelShader.cso").c_str());
-		fps = std::make_shared<SimplePixelShader>(device, context, FixPath(L"FancyPixelShader.cso").c_str());
 		skyVS = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"SkyVertexShader.cso").c_str());
 		skyPS = std::make_shared<SimplePixelShader>(device, context, FixPath(L"SkyPixelShader.cso").c_str());
 		shadowVS = std::make_shared<SimpleVertexShader>(device, context, FixPath(L"ShadowVS.cso").c_str());
@@ -153,99 +147,110 @@ void Game::LoadTexturesAndCreateMaterials()
 
 	// Load textures
 
-#pragma region Cobblestone
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleAlbedoSRV;
+#pragma region Moss (Grasslands)
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossAlbedoSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/cobblestone_albedo.png").c_str(),
+		FixPath(L"../../Assets/Textures/moss_albedo.tif").c_str(),
 		nullptr,
-		cobbleAlbedoSRV.GetAddressOf()
+		mossAlbedoSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossNormalSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/cobblestone_normals.png").c_str(),
+		FixPath(L"../../Assets/Textures/moss_normals.tif").c_str(),
 		nullptr,
-		cobbleNormalSRV.GetAddressOf()
+		mossNormalSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossRoughnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/cobblestone_roughness.png").c_str(),
+		FixPath(L"../../Assets/Textures/moss_roughness.tif").c_str(),
 		nullptr,
-		cobbleRoughnessSRV.GetAddressOf()
+		mossRoughnessSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobbleMetalnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mossMetalnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/cobblestone_metal.png").c_str(),
+		FixPath(L"../../Assets/Textures/moss_metal.tif").c_str(),
 		nullptr,
-		cobbleMetalnessSRV.GetAddressOf()
+		mossMetalnessSRV.GetAddressOf()
 	);
 #pragma endregion
 
-#pragma region Cobblestone
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchAlbedoSRV;
+#pragma region Desert
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> desertAlbedoSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/scratched_albedo.png").c_str(),
+		FixPath(L"../../Assets/Textures/desert_albedo.tif").c_str(),
 		nullptr,
-		scratchAlbedoSRV.GetAddressOf()
+		desertAlbedoSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchNormalSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> desertNormalSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/scratched_normals.png").c_str(),
+		FixPath(L"../../Assets/Textures/desert_normals.tif").c_str(),
 		nullptr,
-		scratchNormalSRV.GetAddressOf()
+		desertNormalSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchRoughnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> desertRoughnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/scratched_roughness.png").c_str(),
+		FixPath(L"../../Assets/Textures/desert_roughness.tif").c_str(),
 		nullptr,
-		scratchRoughnessSRV.GetAddressOf()
+		desertRoughnessSRV.GetAddressOf()
 	);
 
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchMetalnessSRV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> desertMetalnessSRV;
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/scratched_metal.png").c_str(),
+		FixPath(L"../../Assets/Textures/desert_metal.tif").c_str(),
 		nullptr,
-		scratchMetalnessSRV.GetAddressOf()
+		desertMetalnessSRV.GetAddressOf()
 	);
 #pragma endregion
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> splatMapSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/test_splat.png").c_str(),
+		nullptr,
+		splatMapSRV.GetAddressOf()
+	);
+
+	// Create a texture procedurally
+	
 
 	// Create materials
 	// High roughness is a matte surface, low roughness is shiny
 	mat1 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vs, ps);
-	mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.7f, 0.7f, 1.0f), vs, ps);
+	//mat2 = std::make_shared<Material>(DirectX::XMFLOAT4(1.0f, 0.7f, 0.7f, 1.0f), vs, ps);
 
 	// Assign textures to materials
-	mat1->AddTextureSRV("AlbedoMap",		cobbleAlbedoSRV);
-	mat1->AddTextureSRV("NormalMap",		cobbleNormalSRV);
-	mat1->AddTextureSRV("RoughnessMap",		cobbleRoughnessSRV);
-	mat1->AddTextureSRV("MetalnessMap",		cobbleMetalnessSRV);
-	mat1->AddTextureSampler("BasicSampler", sampState);
-
-	mat2->AddTextureSRV("AlbedoMap",		scratchAlbedoSRV);
-	mat2->AddTextureSRV("NormalMap",		scratchNormalSRV);
-	mat2->AddTextureSRV("RoughnessMap",		scratchRoughnessSRV);
-	mat2->AddTextureSRV("MetalnessMap",		scratchMetalnessSRV);
-	mat2->AddTextureSampler("BasicSampler", sampState);
+	mat1->AddTextureSRV("AlbedoMap1",			mossAlbedoSRV);
+	mat1->AddTextureSRV("NormalMap1",			mossNormalSRV);
+	mat1->AddTextureSRV("RoughnessMap1",		mossRoughnessSRV);
+	mat1->AddTextureSRV("MetalnessMap1",		mossMetalnessSRV);
+	mat1->AddTextureSRV("AlbedoMap2",			desertAlbedoSRV);
+	mat1->AddTextureSRV("NormalMap2",			desertNormalSRV);
+	mat1->AddTextureSRV("RoughnessMap2",		desertRoughnessSRV);
+	mat1->AddTextureSRV("MetalnessMap2",		desertMetalnessSRV);
+	mat1->AddTextureSRV("SplatMap",				splatMapSRV);
+	mat1->AddTextureSampler("BasicSampler",		sampState);
 }
 
 // --------------------------------------------------------
@@ -254,20 +259,8 @@ void Game::LoadTexturesAndCreateMaterials()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
-	// At position 0: the cube
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cube.obj").c_str(), device, context));
-	// At position 1: the cylinder
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/cylinder.obj").c_str(), device, context));
-	// At position 2: the helix
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/helix.obj").c_str(), device, context));
-	// At position 3: the quad
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad.obj").c_str(), device, context));
-	// At position 4: the double sided quad
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/quad_double_sided.obj").c_str(), device, context));
-	// At position 5: the sphere
+	// We need only one mesh- the sphere
 	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/sphere.obj").c_str(), device, context));
-	// At position 6: the torus
-	meshes.push_back(std::make_shared<Mesh>(FixPath(L"../../Assets/Models/torus.obj").c_str(), device, context));
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> skySampState;
 
@@ -304,20 +297,8 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::CreateRenderables()
 {
-	// At position 0: the cube
+	// At position 0: the sphere
 	renderables.push_back(std::make_shared<Renderable>(meshes[0], mat1));
-	// At position 1: the cylinder
-	renderables.push_back(std::make_shared<Renderable>(meshes[1], mat2));
-	// At position 2: the helix
-	renderables.push_back(std::make_shared<Renderable>(meshes[2], mat1));
-	// At position 3: the quad
-	renderables.push_back(std::make_shared<Renderable>(meshes[3], mat2));
-	// At position 4: the double sided quad
-	renderables.push_back(std::make_shared<Renderable>(meshes[4], mat1));
-	// At position 5: the sphere
-	renderables.push_back(std::make_shared<Renderable>(meshes[5], mat2));
-	// At position 6: the torus
-	renderables.push_back(std::make_shared<Renderable>(meshes[6], mat1));
 }
 
 // --------------------------------------------------------
@@ -333,13 +314,7 @@ void Game::SetupTransforms()
 	}
 
 	// Now we can adjust them before the game begins if needed
-	transforms[0]->SetPosition(-9.0, 0.0, 0.0);
-	transforms[1]->SetPosition(-6.0, 0.0, 0.0);
-	transforms[2]->SetPosition(-3.0, 0.0, 0.0);
-	transforms[3]->SetPosition(0.0, 0.0, 0.0);
-	transforms[4]->SetPosition(3.0, 0.0, 0.0);
-	transforms[5]->SetPosition(6.0, 0.0, 0.0);
-	transforms[6]->SetPosition(9.0, 0.0, 0.0);
+	transforms[0]->SetPosition(0.0, 0.0, 0.0);
 }
 
 void Game::CreateShadowMapResources()
@@ -571,21 +546,13 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 {
 	float framerate = frameIO.Framerate;
 
-	ImGui::Begin("Stats"); // Everything after is part of the window
-	ImGui::Text("ms/frame: %.3f - FPS: %.1f", 1000.0f / framerate, framerate);
-	ImGui::Text("display size X: %.0f", frameIO.DisplaySize.x);
-	ImGui::Text("display size Y: %.0f", frameIO.DisplaySize.y);
-	ImGui::End(); // Ends the current window
-
-	//ImGui::Begin("Camera Editor"); // Everything after is part of the window
-	//ImGui::Text("To be improved... I tried interfacing with the transform but ran out of time.");
-	//if (ImGui::SliderFloat("Field of View", camera->GetFOV(), XM_PIDIV4, XM_PIDIV2))
-	//{
-	//	camera->UpdateProjectionMatrix(*camera->GetAspectRatio());
-	//}
+	//ImGui::Begin("Stats"); // Everything after is part of the window
+	//ImGui::Text("ms/frame: %.3f - FPS: %.1f", 1000.0f / framerate, framerate);
+	//ImGui::Text("display size X: %.0f", frameIO.DisplaySize.x);
+	//ImGui::Text("display size Y: %.0f", frameIO.DisplaySize.y);
 	//ImGui::End(); // Ends the current window
 
-	ImGui::Begin("Light Editor");
+	ImGui::Begin("Editor");
 	ImGui::Text("Point Light Positions");
 	ImGui::SliderFloat3("Point Light Position 1", &pl1.Position.x, -10.0f, 10.0f);
 	ImGui::SliderFloat3("Point Light Position 2", &pl2.Position.x, -10.0f, 10.0f);

@@ -14,6 +14,10 @@
 #include "Light.h"
 #include "WICTextureLoader.h"
 #include "Sky.h"
+#include "Vertex.h"
+#include "Input.h"
+#include "Helpers.h"
+#include "Noise.h"
 // Not including the ImGui headers here because they are in DXCore.h,
 // which this includes and inherits from <3.
 
@@ -78,7 +82,7 @@ private:
 	// Materials
 	std::vector<std::shared_ptr<Material>> materials;
 	std::shared_ptr<Material> mat1;
-	std::shared_ptr<Material> mat2;
+	//std::shared_ptr<Material> mat2;
 	//std::shared_ptr<Material> mat3;
 	//std::shared_ptr<Material> mat4;
 
