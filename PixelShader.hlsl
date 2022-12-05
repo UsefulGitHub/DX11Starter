@@ -12,7 +12,8 @@ Texture2D NormalMap2			: register(t5);
 Texture2D RoughnessMap2			: register(t6);
 Texture2D MetalnessMap2			: register(t7);
 Texture2D SplatMap				: register(t8);
-SamplerState BasicSampler	: register(s0);	// "s" registers for samplers
+Texture2D TerrainMap			: register(t9);
+SamplerState BasicSampler		: register(s0);	// "s" registers for samplers
 
 // Big External Data cbuffer
 cbuffer externalData		: register(b0) // b0 means the first buffer register
@@ -64,15 +65,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Load splat map
 	float splat = SplatMap.Sample(BasicSampler, input.uv).r;
 
+	// Load terrain map
+	float terrain = TerrainMap.Sample(BasicSampler, input.uv).r;
+
 	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, 1 - splat);
 	float3 normal = lerp(normal1, normal2, 1 - splat);
 	float roughness = lerp(roughness1, roughness2, 1 - splat);
 	float metalness = lerp(metalness1, metalness2, 1 - splat);
-	
-	//float4 surfaceColor = perlin(input.uv.x, input.uv.y);
-	//float3 normal = perlin(input.uv.x, input.uv.y);
-	//float roughness = perlin(input.uv.x, input.uv.y);
-	//float metalness = perlin(input.uv.x, input.uv.y);
 
 	// Get the normalized view for specular highlights
 	float3 view = normalize(cameraPosition - input.worldPosition);
@@ -92,5 +91,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-	return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
+	//return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
+	return float4(terrain.rrr, 1.0f);
 }

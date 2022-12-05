@@ -44,6 +44,7 @@ private:
 	void CreateGeometry();
 	void CreateRenderables();
 	void SetupTransforms();
+	void CreateTerrainResources();
 	void CreateShadowMapResources();
 	void InitLighting();
 
@@ -94,7 +95,6 @@ private:
 	std::vector<Transform*> transforms;
 
 	// Lighting
-	DirectX::XMFLOAT3 ambientLight;
 	Light dir1;
 	Light dir2;
 	Light dir3;

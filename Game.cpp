@@ -30,7 +30,6 @@ Game::Game(HINSTANCE hInstance)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
 	// Initialize all the member variables to appease C++
-	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	dir1 = {};
 	dir2 = {};
 	dir3 = {};
@@ -82,7 +81,7 @@ void Game::Init()
 	camera = std::make_shared<Camera>(
 		0.0f,
 		0.0f,
-		-15.0f,
+		-5.0f,
 		(float)windowWidth / windowHeight, // Turn one into a float so you aren't doing integer division!
 		XM_PIDIV4, // Pi divided by 4, 45 degrees
 		2.0f,
@@ -232,8 +231,48 @@ void Game::LoadTexturesAndCreateMaterials()
 		splatMapSRV.GetAddressOf()
 	);
 
+#pragma region Terrain
 	// Create a texture procedurally
-	
+	int noiseWidth = 1024;
+	int noiseHeight = 1024;
+	int noiseDimensions = noiseWidth * noiseHeight;
+	DirectX::XMFLOAT4* topNoise = new DirectX::XMFLOAT4[noiseDimensions];
+	for (int i = 0; i < noiseDimensions; i++)
+	{
+		topNoise[i].x = perlin(20 + i, i) / 0.5f + 0.5f;
+	}
+
+	// Create a simple texture of the specified size
+	D3D11_TEXTURE2D_DESC td = {};
+	td.ArraySize = 1;
+	td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	td.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	td.MipLevels = 1;
+	td.Height = noiseHeight;
+	td.Width = noiseWidth;
+	td.SampleDesc.Count = 1;
+
+	// Initial data for the texture
+	D3D11_SUBRESOURCE_DATA data = {};
+	data.pSysMem = topNoise;
+	data.SysMemPitch = sizeof(float) * 4 * noiseWidth;
+
+	// Actually create it
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+	device->CreateTexture2D(&td, &data, texture.GetAddressOf());
+
+	// Create the shader resource view for this texture
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Format = td.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> noiseSRV;
+	device->CreateShaderResourceView(texture.Get(), &srvDesc, noiseSRV.GetAddressOf());
+
+	delete[] topNoise;
+#pragma endregion
 
 	// Create materials
 	// High roughness is a matte surface, low roughness is shiny
@@ -250,6 +289,7 @@ void Game::LoadTexturesAndCreateMaterials()
 	mat1->AddTextureSRV("RoughnessMap2",		desertRoughnessSRV);
 	mat1->AddTextureSRV("MetalnessMap2",		desertMetalnessSRV);
 	mat1->AddTextureSRV("SplatMap",				splatMapSRV);
+	mat1->AddTextureSRV("TerrainMap",			noiseSRV);
 	mat1->AddTextureSampler("BasicSampler",		sampState);
 }
 
@@ -315,6 +355,28 @@ void Game::SetupTransforms()
 
 	// Now we can adjust them before the game begins if needed
 	transforms[0]->SetPosition(0.0, 0.0, 0.0);
+}
+
+// --------------------------------------------------------
+// Makes the texture used for terrain mapping
+// - Also programmatically draws initial random continents into the texture
+// --------------------------------------------------------
+void Game::CreateTerrainResources()
+{
+	//D3D11_TEXTURE2D_DESC desc;
+	//desc.Width = 1024;
+	//desc.Height = 1024;
+	//desc.MipLevels = desc.ArraySize = 1;
+	//desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//desc.SampleDesc.Count = 1;
+	//desc.Usage = D3D11_USAGE_DYNAMIC;
+	//desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	//desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//desc.MiscFlags = 0;
+
+	//ID3D11Device* pd3dDevice; // Don't forget to initialize this
+	//ID3D11Texture2D* pTexture = NULL;
+	//pd3dDevice->CreateTexture2D(&desc, NULL, &pTexture);
 }
 
 void Game::CreateShadowMapResources()
@@ -404,32 +466,30 @@ void Game::CreateShadowMapResources()
 }
 
 // --------------------------------------------------------
-// Makes the light objects and sets ambient light values
+// Makes the light objects
 // - Also gives the space to adjust colors/transforms before the game starts
 // --------------------------------------------------------
 void Game::InitLighting()
 {
-	ambientLight = DirectX::XMFLOAT3(0.0f, 0.0f, 0.24f);
-	
 	// Directional Light 1
 	dir1 = {};
 	dir1.Type = LIGHT_TYPE_DIRECTIONAL;
 	dir1.Direction = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
-	dir1.Color = DirectX::XMFLOAT3(0.13f, 0.05f, 0.65f);
+	dir1.Color = DirectX::XMFLOAT3(1.0f, 0.8f, 0.85f);
 	dir1.Intensity = 1.0f;
 
 	// Directional Light 2
 	dir2= {};
 	dir2.Type = LIGHT_TYPE_DIRECTIONAL;
 	dir2.Direction = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-	dir2.Color = DirectX::XMFLOAT3(0.0f, 0.8f, 0.2f);
+	dir2.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	dir2.Intensity = 1.0f;
 
 	// Directional Light 3
 	dir3= {};
 	dir3.Type = LIGHT_TYPE_DIRECTIONAL;
 	dir3.Direction = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
-	dir3.Color = DirectX::XMFLOAT3(0.8f, 0.02f, 0.13f);
+	dir3.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	dir3.Intensity = 1.0f;
 
 	// Point Light 1
@@ -437,7 +497,7 @@ void Game::InitLighting()
 	pl1.Type = LIGHT_TYPE_POINT;
 	pl1.Position = DirectX::XMFLOAT3(0.1, -1, 0.2);
 	pl1.Range = 18.0f;
-	pl1.Color = DirectX::XMFLOAT3(0.87f, 0.95f, 0.935f);
+	pl1.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	pl1.Intensity = 1.0f;
 
 	// Point Light 2
@@ -445,7 +505,7 @@ void Game::InitLighting()
 	pl2.Type = LIGHT_TYPE_POINT;
 	pl2.Position = DirectX::XMFLOAT3(0.9, -1.6, 4.0);
 	pl2.Range = 45.0f;
-	pl2.Color = DirectX::XMFLOAT3(0.954f, 0.85f, 1.0);
+	pl2.Color = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
 	pl2.Intensity = 1.0f;
 }
 
@@ -629,8 +689,6 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	for (int i = 0; i < renderables.size(); i++)
 	{
-		// All the renderables get the ambient light cast onto their pixel shader
-		renderables[i]->GetMaterial()->GetPS()->SetFloat3("ambientLight", ambientLight);
 		// They also get the directional light
 		renderables[i]->GetMaterial()->GetPS()->SetData(
 			"directionalLight1",
