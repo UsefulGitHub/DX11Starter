@@ -237,9 +237,23 @@ void Game::LoadTexturesAndCreateMaterials()
 	int noiseHeight = 1024;
 	int noiseDimensions = noiseWidth * noiseHeight;
 	DirectX::XMFLOAT4* topNoise = new DirectX::XMFLOAT4[noiseDimensions];
+	int xIndex = 0;
+	float xoff = 0.0f;
+	float yoff = 0.0f;
 	for (int i = 0; i < noiseDimensions; i++)
 	{
-		topNoise[i].x = perlin(20 + i, i) / 0.5f + 0.5f;
+		topNoise[i].x = perlin(xoff, yoff) / 0.5f + 0.5f;
+		if (xIndex < noiseWidth)
+		{
+			xoff += 0.05;
+			xIndex += 1;
+		}
+		else
+		{
+			xIndex = 0;
+			xoff = 0.0f;
+			yoff += 0.05;
+		}
 	}
 
 	// Create a simple texture of the specified size
