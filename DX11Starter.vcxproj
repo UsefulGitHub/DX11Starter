@@ -156,6 +156,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Noise.cpp" />
+    <ClCompile Include="OpenSimplex2S.cpp" />
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="Sky.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Noise.h" />
+    <ClInclude Include="OpenSimplex2S.h" />
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Sky.h" />
