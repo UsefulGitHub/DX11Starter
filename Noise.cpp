@@ -72,4 +72,3 @@ float perlin(float x, float y)
 	// Will return in range -1 to 1
 	// To make it in range of 0 to 1, multiply by 1/2 and add 1/2
 }
-
