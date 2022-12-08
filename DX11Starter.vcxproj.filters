@@ -183,5 +183,8 @@
     <None Include="TextureFunctions.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Noise.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

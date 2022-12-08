@@ -44,4 +44,8 @@ float3 GetSpecularColor(float4 albedoColor, float metalness)
 	// because of linear texture sampling, so we lerp to accept the fuzzy answers
 	return lerp(F0_NON_METAL.rrr, albedoColor.rgb, metalness);
 }
+
+// We have to convert the normal from cartesian coordinates to spherical coordinates
+// The origin can be zero in cartesian
+// In the sphere, p will be the same for all points
 #endif

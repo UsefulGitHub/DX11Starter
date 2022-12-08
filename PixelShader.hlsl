@@ -1,5 +1,6 @@
 #include "structs.hlsli"
 #include "LightHeader.hlsli"
+#include "Noise.hlsli"
 #include "TextureFunctions.hlsli"
 
 // The texture set
@@ -92,5 +93,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
 	//return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
-	return float4(terrain.rrr, 1.0f);
+	//return float4(terrain.rrr, 1.0f);
+	
+	// Sample noise and return a color
+	float noise = 1.0 - (fbmPerlin(float4(input.cisNormal.x, input.cisNormal.y, input.cisNormal.z, 1.0f), float4(44.0, 44.0, 44.0, 44.0)) * 0.5 + 0.5);
+	return float4(noise.xxx, 1.0f);
 }

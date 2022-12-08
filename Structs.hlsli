@@ -36,6 +36,7 @@ struct VertexToPixel
 	float3 normal			: NORMAL;		// Pixel's surface normal's direction
 	float3 worldPosition	: POSITION;		// Pixel's world position
 	float3 tangent			: TANGENT;		// The tangent along the surface, oriented to the u of the uv
+	float3 cisNormal		: CISNORMAL;	// The not transformed normal
 };
 
 struct SkyVertexToPixel

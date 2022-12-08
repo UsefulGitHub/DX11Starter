@@ -225,6 +225,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="LightHeader.hlsli" />
+    <None Include="Noise.hlsli" />
     <None Include="packages.config" />
     <None Include="Structs.hlsli" />
     <None Include="TextureFunctions.hlsli" />
