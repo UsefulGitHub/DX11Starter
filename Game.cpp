@@ -585,7 +585,7 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 	//ImGui::End(); // Ends the current window
 
 	ImGui::Begin("Editor");
-	ImGui::Text("Point Light Positions");
+	/*ImGui::Text("Point Light Positions");
 	ImGui::SliderFloat3("Point Light Position 1", &pl1.Position.x, -10.0f, 10.0f);
 	ImGui::SliderFloat3("Point Light Position 2", &pl2.Position.x, -10.0f, 10.0f);
 	ImGui::Text("Point Light Colors");
@@ -597,9 +597,10 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 	ImGui::Text("Directional Light Colors");
 	ImGui::SliderFloat3("Directional Light Color 1", &dir1.Color.x, 0.0f, 1.0f);
 	ImGui::SliderFloat3("Directional Light Color 2", &dir2.Color.x, 0.0f, 1.0f);
-	ImGui::SliderFloat3("Directional Light Color 3", &dir3.Color.x, 0.0f, 1.0f);
-	ImGui::SliderFloat("Noise Repetition", &rep, 1.0f, 100.0f);
-	ImGui::SliderFloat("Noise Scale", &scale, 1.0f, 10.0f);
+	ImGui::SliderFloat3("Directional Light Color 3", &dir3.Color.x, 0.0f, 1.0f);*/
+	ImGui::Text("Noise Settings");
+	ImGui::SliderFloat("Repetition", &rep, 1.0f, 100.0f);
+	ImGui::SliderFloat("Scale", &scale, 1.0f, 10.0f);
 	ImGui::End();
 }
 
