@@ -109,7 +109,7 @@ void Game::Init()
 
 	// Initializes noise settings for the planet
 	rep = 44.0f;
-	scale = 1;
+	scale = 5.0f;
 }
 
 // --------------------------------------------------------
@@ -235,61 +235,16 @@ void Game::LoadTexturesAndCreateMaterials()
 		splatMapSRV.GetAddressOf()
 	);
 
-#pragma region Terrain
-	// Create a texture procedurally
-	int noiseWidth = 1024;
-	int noiseHeight = 1024;
-	int noiseDimensions = noiseWidth * noiseHeight;
-	DirectX::XMFLOAT4* topNoise = new DirectX::XMFLOAT4[noiseDimensions];
-	int xIndex = 0;
-	float xoff = 0.0f;
-	float yoff = 0.0f;
-	for (int i = 0; i < noiseDimensions; i++)
-	{
-		topNoise[i].x = perlin(xoff, yoff) / 0.5f + 0.5f;
-		if (xIndex < noiseWidth)
-		{
-			xoff += 0.05;
-			xIndex += 1;
-		}
-		else
-		{
-			xIndex = 0;
-			xoff = 0.0f;
-			yoff += 0.05;
-		}
-	}
-
-	// Create a simple texture of the specified size
-	D3D11_TEXTURE2D_DESC td = {};
-	td.ArraySize = 1;
-	td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	td.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	td.MipLevels = 1;
-	td.Height = noiseHeight;
-	td.Width = noiseWidth;
-	td.SampleDesc.Count = 1;
-
-	// Initial data for the texture
-	D3D11_SUBRESOURCE_DATA data = {};
-	data.pSysMem = topNoise;
-	data.SysMemPitch = sizeof(float) * 4 * noiseWidth;
-
-	// Actually create it
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
-	device->CreateTexture2D(&td, &data, texture.GetAddressOf());
-
+#pragma region ColorGrade
 	// Create the shader resource view for this texture
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Format = td.Format;
-	srvDesc.Texture2D.MipLevels = 1;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> noiseSRV;
-	device->CreateShaderResourceView(texture.Get(), &srvDesc, noiseSRV.GetAddressOf());
-
-	delete[] topNoise;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> gradientSRV;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/colorgrade.png").c_str(),
+		nullptr,
+		gradientSRV.GetAddressOf()
+	);	
 #pragma endregion
 
 	// Create materials
@@ -306,8 +261,7 @@ void Game::LoadTexturesAndCreateMaterials()
 	mat1->AddTextureSRV("NormalMap2",			desertNormalSRV);
 	mat1->AddTextureSRV("RoughnessMap2",		desertRoughnessSRV);
 	mat1->AddTextureSRV("MetalnessMap2",		desertMetalnessSRV);
-	mat1->AddTextureSRV("SplatMap",				splatMapSRV);
-	mat1->AddTextureSRV("TerrainMap",			noiseSRV);
+	mat1->AddTextureSRV("ColorGradient",		gradientSRV);
 	mat1->AddTextureSampler("BasicSampler",		sampState);
 }
 
@@ -645,7 +599,7 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 	ImGui::SliderFloat3("Directional Light Color 2", &dir2.Color.x, 0.0f, 1.0f);
 	ImGui::SliderFloat3("Directional Light Color 3", &dir3.Color.x, 0.0f, 1.0f);
 	ImGui::SliderFloat("Noise Repetition", &rep, 1.0f, 100.0f);
-	ImGui::SliderFloat("Noise Scale", &scale, 1.0f, 50.0f);
+	ImGui::SliderFloat("Noise Scale", &scale, 1.0f, 10.0f);
 	ImGui::End();
 }
 

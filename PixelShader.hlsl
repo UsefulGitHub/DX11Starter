@@ -12,8 +12,7 @@ Texture2D AlbedoMap2			: register(t4);
 Texture2D NormalMap2			: register(t5);
 Texture2D RoughnessMap2			: register(t6);
 Texture2D MetalnessMap2			: register(t7);
-Texture2D SplatMap				: register(t8);
-Texture2D TerrainMap			: register(t9);
+Texture1D ColorGradient			: register(t8);
 SamplerState BasicSampler		: register(s0);	// "s" registers for samplers
 
 // Big External Data cbuffer
@@ -66,32 +65,34 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float metalness2 = SampleMetalnessRoughness(MetalnessMap2, BasicSampler, input.uv);
 
 	// Calculate noise
-	float noise = fbmPerlin(float4(input.cisNormal.x * scale, input.cisNormal.y * scale, input.cisNormal.z * scale, 1.0f), float4(rep.xxxx)) * 0.5 + 0.5;
+	float noise = fbmPerlin(float4(input.cisNormal.x * scale, input.cisNormal.y * scale, input.cisNormal.z * scale, 1.0f), float4(rep.xxxx));
 
-	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, noise);
-	float3 normal = lerp(normal1, normal2, noise);
-	float roughness = lerp(roughness1, roughness2, noise);
-	float metalness = lerp(metalness1, metalness2, noise);
-
-	// Get the normalized view for specular highlights
-	float3 view = normalize(cameraPosition - input.worldPosition);
-	
-	// Get the specular color for all the specular lights to use
-	float3 specColor = GetSpecularColor(surfaceColor, metalness);
-
-	// Add light toghether
-	float3 returnedLight =
-		DirectionalLight(directionalLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
-		DirectionalLight(directionalLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
-		DirectionalLight(directionalLight3, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
-		PointLight(pointLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition) +
-		PointLight(pointLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition);
-
-	// Just return the input color
-	// - This color (like most values passing through the rasterizer) is 
-	//   interpolated for each pixel between the corresponding vertices 
-	//   of the triangle we're rendering
-	//return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
-
-	return float4(noise.xxx, 1.0f);
+	return(ColorGradient.Sample(BasicSampler, float2(noise, 0.0f)));
+//
+//	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, noise);
+//	float3 normal = lerp(normal1, normal2, noise);
+//	float roughness = lerp(roughness1, roughness2, noise);
+//	float metalness = lerp(metalness1, metalness2, noise);
+//
+//	// Get the normalized view for specular highlights
+//	float3 view = normalize(cameraPosition - input.worldPosition);
+//	
+//	// Get the specular color for all the specular lights to use
+//	float3 specColor = GetSpecularColor(surfaceColor, metalness);
+//
+//	// Add light toghether
+//	float3 returnedLight =
+//		DirectionalLight(directionalLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+//		DirectionalLight(directionalLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+//		DirectionalLight(directionalLight3, normal, roughness, metalness, specColor, surfaceColor, colorTint, view) +
+//		PointLight(pointLight1, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition) +
+//		PointLight(pointLight2, normal, roughness, metalness, specColor, surfaceColor, colorTint, view, input.worldPosition);
+//
+//	// Just return the input color
+//	// - This color (like most values passing through the rasterizer) is 
+//	//   interpolated for each pixel between the corresponding vertices 
+//	//   of the triangle we're rendering
+//	//return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
+//
+//	return float4(noise.xxx, 1.0f);
 }
