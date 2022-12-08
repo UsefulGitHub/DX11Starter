@@ -111,5 +111,9 @@ private:
 	DirectX::XMFLOAT4X4 shadowViewMatrix;
 	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 	std::shared_ptr<SimpleVertexShader> shadowVS;
+
+	// Noise Variables for the Planet
+	float rep;
+	float scale;
 };
 

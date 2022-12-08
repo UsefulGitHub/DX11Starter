@@ -26,6 +26,8 @@ cbuffer externalData		: register(b0) // b0 means the first buffer register
 	Light directionalLight3;
 	Light pointLight1;
 	Light pointLight2;
+	float rep;
+	float scale;
 }
 
 // --------------------------------------------------------
@@ -63,19 +65,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float roughness2 = SampleMetalnessRoughness(RoughnessMap2, BasicSampler, input.uv);
 	float metalness2 = SampleMetalnessRoughness(MetalnessMap2, BasicSampler, input.uv);
 
-	// Load splat map
-	float splat = SplatMap.Sample(BasicSampler, input.uv).r;
-
 	// Calculate noise
-	float noise = fbmPerlin(float4(input.cisNormal.x, input.cisNormal.y, input.cisNormal.z, 1.0f), float4(44.0, 44.0, 44.0, 44.0)) * 0.5 + 0.5;
+	float noise = fbmPerlin(float4(input.cisNormal.x * scale, input.cisNormal.y * scale, input.cisNormal.z * scale, 1.0f), float4(rep.xxxx)) * 0.5 + 0.5;
 
-	// Load terrain map
-	float terrain = TerrainMap.Sample(BasicSampler, input.uv).r;
-
-	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, 1 - noise);
-	float3 normal = lerp(normal1, normal2, 1 - splat);
-	float roughness = lerp(roughness1, roughness2, 1 - splat);
-	float metalness = lerp(metalness1, metalness2, 1 - splat);
+	float4 surfaceColor = lerp(surfaceColor1, surfaceColor2, noise);
+	float3 normal = lerp(normal1, normal2, noise);
+	float roughness = lerp(roughness1, roughness2, noise);
+	float metalness = lerp(metalness1, metalness2, noise);
 
 	// Get the normalized view for specular highlights
 	float3 view = normalize(cameraPosition - input.worldPosition);
@@ -95,5 +91,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// - This color (like most values passing through the rasterizer) is 
 	//   interpolated for each pixel between the corresponding vertices 
 	//   of the triangle we're rendering
-	return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
+	//return float4(pow(returnedLight, 1.0f / 2.2f), 1.0f);
+
+	return float4(noise.xxx, 1.0f);
 }

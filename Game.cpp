@@ -106,6 +106,10 @@ void Game::Init()
 		// Essentially: "What kind of shape should the GPU draw with our vertices?"
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
+
+	// Initializes noise settings for the planet
+	rep = 44.0f;
+	scale = 1;
 }
 
 // --------------------------------------------------------
@@ -640,6 +644,8 @@ void Game::UpdateImGui(ImGuiIO frameIO)
 	ImGui::SliderFloat3("Directional Light Color 1", &dir1.Color.x, 0.0f, 1.0f);
 	ImGui::SliderFloat3("Directional Light Color 2", &dir2.Color.x, 0.0f, 1.0f);
 	ImGui::SliderFloat3("Directional Light Color 3", &dir3.Color.x, 0.0f, 1.0f);
+	ImGui::SliderFloat("Noise Repetition", &rep, 1.0f, 100.0f);
+	ImGui::SliderFloat("Noise Scale", &scale, 1.0f, 50.0f);
 	ImGui::End();
 }
 
@@ -728,6 +734,16 @@ void Game::Draw(float deltaTime, float totalTime)
 			"pointLight2",
 			&pl2,
 			sizeof(Light)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"rep",
+			&rep,
+			sizeof(float)
+		);
+		renderables[i]->GetMaterial()->GetPS()->SetData(
+			"scale",
+			&scale,
+			sizeof(float)
 		);
 		renderables[i]->Draw(context, camera, totalTime);
 	}
